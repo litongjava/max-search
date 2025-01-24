@@ -1,0 +1,43 @@
+{
+  "chatModelProviders": {
+    "openai": {
+      "gpt-3.5-turbo": {
+        "displayName": "GPT-3.5 Turbo"
+      },
+      "gpt-4": {
+        "displayName": "GPT-4"
+      },
+      "gpt-4-turbo": {
+        "displayName": "GPT-4 turbo"
+      },
+      "gpt-4o": {
+        "displayName": "GPT-4 omni"
+      },
+      "gpt-4o-mini": {
+        "displayName": "GPT-4 omni mini"
+      }
+    },
+    "custom_openai": {}
+  },
+  "embeddingModelProviders": {
+    "openai": {
+      "text-embedding-3-small": {
+        "displayName": "Text Embedding 3 Small"
+      },
+      "text-embedding-3-large": {
+        "displayName": "Text Embedding 3 Large"
+      }
+    },
+    "local": {
+      "xenova-bge-small-en-v1.5": {
+        "displayName": "BGE Small"
+      },
+      "xenova-gte-small": {
+        "displayName": "GTE Small"
+      },
+      "xenova-bert-base-multilingual-uncased": {
+        "displayName": "Bert Multilingual"
+      }
+    }
+  }
+}

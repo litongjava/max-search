@@ -1,0 +1,83 @@
+package com.litongjava.perplexica.handler;
+
+import com.alibaba.fastjson2.JSONObject;
+import com.litongjava.jfinal.aop.Aop;
+import com.litongjava.perplexica.services.LLmAiWsChatSearchService;
+import com.litongjava.perplexica.vo.ChatSignalVo;
+import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
+import com.litongjava.tio.core.ChannelContext;
+import com.litongjava.tio.core.Tio;
+import com.litongjava.tio.core.utils.TioUtils;
+import com.litongjava.tio.http.common.HttpRequest;
+import com.litongjava.tio.http.common.HttpResponse;
+import com.litongjava.tio.utils.environment.EnvUtils;
+import com.litongjava.tio.utils.json.FastJson2Utils;
+import com.litongjava.tio.utils.json.JsonUtils;
+import com.litongjava.tio.websocket.common.WebSocketRequest;
+import com.litongjava.tio.websocket.common.WebSocketResponse;
+import com.litongjava.tio.websocket.server.handler.IWebSocketHandler;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class ChatWebSocketHandler implements IWebSocketHandler {
+  public static final String CHARSET = "utf-8";
+
+  /**
+   * 握手成功后执行，绑定群组并通知其他用户
+   */
+  public HttpResponse handshake(HttpRequest httpRequest, HttpResponse response, ChannelContext channelContext) throws Exception {
+    return response;
+  }
+
+  /**
+   * 处理文本消息，并进行消息广播
+   */
+  public void onAfterHandshaked(HttpRequest httpRequest, HttpResponse httpResponse, ChannelContext channelContext) throws Exception {
+    String origin = httpRequest.getOrigin();
+    if ("https://sjsu.mycounsellor.ai".equals(origin)) {
+      channelContext.setAttribute("CSE_ID", EnvUtils.getStr("SJSU_CSE_ID"));
+
+    } else if ("https://hawaii.mycounsellor.ai".equals(origin)) {
+      channelContext.setAttribute("CSE_ID", EnvUtils.getStr("HAWAII_CSE_ID"));
+
+    } else {
+      channelContext.setAttribute("CSE_ID", EnvUtils.getStr("CSE_ID"));
+    }
+    log.info("open:{}", channelContext.getClientIpAndPort());
+    String json = JsonUtils.toJson(new ChatSignalVo("signal", "open"));
+    WebSocketResponse webSocketResponse = WebSocketResponse.fromText(json, CHARSET);
+    Tio.send(channelContext, webSocketResponse);
+  }
+
+  /**
+   * 处理连接关闭请求，进行资源清理
+   */
+  public Object onClose(WebSocketRequest wsRequest, byte[] bytes, ChannelContext channelContext) throws Exception {
+    Tio.remove(channelContext, "客户端主动关闭连接");
+    return null;
+  }
+
+  /**
+   * 处理二进制消息
+   */
+  public Object onBytes(WebSocketRequest wsRequest, byte[] bytes, ChannelContext channelContext) throws Exception {
+    log.info("size:{}", bytes.length);
+    return null;
+  }
+
+  /**
+   * 处理文本消息
+   */
+  public Object onText(WebSocketRequest wsRequest, String text, ChannelContext channelContext) throws Exception {
+    JSONObject reqJsonObject = FastJson2Utils.parseObject(text);
+    String type = reqJsonObject.getString("type");
+    if ("message".equals(type)) {
+      ChatWsReqMessageVo vo = FastJson2Utils.parse(text, ChatWsReqMessageVo.class);
+      log.info("message:{}", text);
+      Aop.get(LLmAiWsChatSearchService.class).processMessageBySearchModel(channelContext, vo);
+    }
+    return null; // 不需要额外的返回值
+  }
+
+}

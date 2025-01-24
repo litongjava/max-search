@@ -1,0 +1,58 @@
+{
+  "chatModelProviders": {
+    "openai": [
+      {
+        "name": "gpt-3.5-turbo",
+        "displayName": "GPT-3.5 Turbo"
+      },
+      {
+        "name": "gpt-4",
+        "displayName": "GPT-4"
+      },
+      {
+        "name": "gpt-4-turbo",
+        "displayName": "GPT-4 turbo"
+      },
+      {
+        "name": "gpt-4o",
+        "displayName": "GPT-4 omni"
+      },
+      {
+        "name": "gpt-4o-mini",
+        "displayName": "GPT-4 omni mini"
+      }
+    ],
+    "custom_openai": []
+  },
+  "embeddingModelProviders": {
+    "openai": [
+      {
+        "name": "text-embedding-3-small",
+        "displayName": "Text Embedding 3 Small"
+      },
+      {
+        "name": "text-embedding-3-large",
+        "displayName": "Text Embedding 3 Large"
+      }
+    ],
+    "local": [
+      {
+        "name": "xenova-bge-small-en-v1.5",
+        "displayName": "BGE Small"
+      },
+      {
+        "name": "xenova-gte-small",
+        "displayName": "GTE Small"
+      },
+      {
+        "name": "xenova-bert-base-multilingual-uncased",
+        "displayName": "Bert Multilingual"
+      }
+    ]
+  },
+  "openaiApiKey": "",
+  "ollamaApiUrl": "",
+  "anthropicApiKey": "",
+  "groqApiKey": "",
+  "geminiApiKey": ""
+}
