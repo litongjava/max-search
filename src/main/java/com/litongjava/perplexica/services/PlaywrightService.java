@@ -63,7 +63,7 @@ public class PlaywrightService {
     // 首先检查数据库中是否已存在该页面内容
     if (Db.exists(cache_table_name, "url", link)) {
       // 假设 content 字段存储了页面内容
-      return Db.queryStr("SELECT text FROM max_kb_web_page_cache WHERE url = ?", link);
+      return Db.queryStr("SELECT text FROM " + cache_table_name + " WHERE url = ?", link);
     }
 
     // 获取与链接对应的锁并锁定
@@ -72,7 +72,7 @@ public class PlaywrightService {
     try {
       // 再次检查，防止其他线程已生成内容
       if (Db.exists(cache_table_name, "url", link)) {
-        return Db.queryStr("SELECT content FROM max_kb_web_page_cache WHERE url = ?", link);
+        return Db.queryStr("SELECT text FROM " + cache_table_name + " WHERE url = ?", link);
       }
       // 使用 PlaywrightBrowser 获取页面内容
       BrowserContext context = PlaywrightBrowser.acquire();
@@ -92,9 +92,9 @@ public class PlaywrightService {
         // 构造数据库实体或使用直接 SQL 插入
         Row newRow = new Row();
         newRow.set("id", SnowflakeIdUtils.id()).set("url", link)
-        //
-        .set("text", bodyText).set("html", html);
-        Db.save("max_kb_web_page_cache", newRow);
+            //
+            .set("text", bodyText).set("html", html);
+        Db.save(cache_table_name, newRow);
       }
 
       return bodyText;

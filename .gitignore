@@ -156,3 +156,4 @@ vcpkg_installed/
 .next/
 app.zip
 .deploy.toml
+app-prod.properties
