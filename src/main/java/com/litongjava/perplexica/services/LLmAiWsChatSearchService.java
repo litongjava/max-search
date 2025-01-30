@@ -4,8 +4,11 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
+import com.google.common.util.concurrent.Striped;
 import com.jfinal.kit.Kv;
+import com.litongjava.db.activerecord.Db;
 import com.litongjava.gemini.GoogleGeminiModels;
 import com.litongjava.google.search.GoogleCustomSearchResponse;
 import com.litongjava.google.search.SearchResultItem;
@@ -18,6 +21,8 @@ import com.litongjava.openai.constants.PerplexityModels;
 import com.litongjava.perplexica.callback.GoogleChatWebsocketCallback;
 import com.litongjava.perplexica.callback.PplChatWebsocketCallback;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
+import com.litongjava.perplexica.consts.PerTableNames;
+import com.litongjava.perplexica.model.PerplexicaChatSession;
 import com.litongjava.perplexica.vo.ChatReqMessage;
 import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
@@ -39,6 +44,7 @@ import okhttp3.Callback;
 
 @Slf4j
 public class LLmAiWsChatSearchService {
+  private static final Striped<Lock> sessionLocks = Striped.lock(64);
 
   /**
    * 使用搜索模型处理消息
@@ -48,7 +54,17 @@ public class LLmAiWsChatSearchService {
     String sessionId = message.getChatId();
     String messageId = message.getMessageId();
     String content = message.getContent();
+    // create chat or save message
+    if (Db.exists(PerTableNames.perplexica_chat_session, "id", sessionId)) {
+      Lock lock = sessionLocks.get(sessionId);
+      lock.lock();
+      try {
+        new PerplexicaChatSession().setId(sessionId).setUserId(content);
+      } finally {
+        lock.unlock();
+      }
 
+    }
     Call call = google(channelContext, sessionId, messageId, content);
     ChatWsStreamCallCan.put(sessionId, call);
   }
@@ -86,6 +102,7 @@ public class LLmAiWsChatSearchService {
         ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId + "", "");
         Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
         vo = ChatWsRespVo.message(messageId, "Sorry,not found");
+        log.info("not found:{}", content);
         Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
       }
 

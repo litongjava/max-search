@@ -1,13 +1,14 @@
 package com.litongjava.perplexica.generator;
+
 import javax.sql.DataSource;
 
-import com.litongjava.db.activerecord.dialect.MysqlDialect;
+import com.litongjava.db.activerecord.dialect.PostgreSqlDialect;
 import com.litongjava.db.activerecord.generator.Generator;
 import com.litongjava.db.druid.DruidPlugin;
 import com.litongjava.tio.utils.environment.EnvUtils;
 
 public class JavaDbGenerator {
-  public static String modelPackageName = "com.litongjava.common.model";
+  public static String modelPackageName = "com.litongjava.perplexica.model";
 
   public static void main(String[] args) {
     EnvUtils.load();
@@ -26,12 +27,12 @@ public class JavaDbGenerator {
 
     // 配置生成器
     generator.setGenerateRemarks(true); // 生成字段备注
-    generator.setDialect(new MysqlDialect()); // 设置数据库方言
+    generator.setDialect(new PostgreSqlDialect()); // 设置数据库方言
     generator.setGenerateChainSetter(true); // 生成链式 setter 方法
     // generator.addExcludedTable("t_db_connect_info"); // 添加不需要生成的表名
     generator.setGenerateDaoInModel(true); // 在 Model 中生成 dao 对象
     generator.setGenerateDataDictionary(false); // 不生成数据字典
-    generator.setRemovedTableNamePrefixes("t_"); // 移除表名前缀，如 "t_"，生成的 Model 名为 "User" 而非 "TUser"
+    generator.addWhitelist("perplexica_chat_session", "perplexica_chat_message");
 
     // 开始生成
     generator.generate();

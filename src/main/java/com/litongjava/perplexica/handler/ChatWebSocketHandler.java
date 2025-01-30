@@ -37,12 +37,18 @@ public class ChatWebSocketHandler implements IWebSocketHandler {
     String origin = httpRequest.getOrigin();
     if ("https://sjsu.mycounsellor.ai".equals(origin)) {
       channelContext.setAttribute("CSE_ID", EnvUtils.getStr("SJSU_CSE_ID"));
+      channelContext.setAttribute("FROM", "sjsu");
 
     } else if ("https://hawaii.mycounsellor.ai".equals(origin)) {
       channelContext.setAttribute("CSE_ID", EnvUtils.getStr("HAWAII_CSE_ID"));
+      channelContext.setAttribute("FROM", "hawaii");
 
+    } else if ("https://stanford.mycounsellor.ai".equals(origin)) {
+      channelContext.setAttribute("CSE_ID", EnvUtils.getStr("STANFORD_CSE_ID"));
+      channelContext.setAttribute("FROM", "STANFORD");
     } else {
       channelContext.setAttribute("CSE_ID", EnvUtils.getStr("CSE_ID"));
+
     }
     log.info("open:{}", channelContext.getClientIpAndPort());
     String json = JsonUtils.toJson(new ChatSignalVo("signal", "open"));
