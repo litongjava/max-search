@@ -7,7 +7,6 @@ import com.litongjava.perplexica.vo.ChatSignalVo;
 import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
-import com.litongjava.tio.core.utils.TioUtils;
 import com.litongjava.tio.http.common.HttpRequest;
 import com.litongjava.tio.http.common.HttpResponse;
 import com.litongjava.tio.utils.environment.EnvUtils;
@@ -35,22 +34,27 @@ public class ChatWebSocketHandler implements IWebSocketHandler {
    */
   public void onAfterHandshaked(HttpRequest httpRequest, HttpResponse httpResponse, ChannelContext channelContext) throws Exception {
     String origin = httpRequest.getOrigin();
+    String cesId = null;
+    String from = null;
     if ("https://sjsu.mycounsellor.ai".equals(origin)) {
-      channelContext.setAttribute("CSE_ID", EnvUtils.getStr("SJSU_CSE_ID"));
-      channelContext.setAttribute("FROM", "sjsu");
+      cesId = EnvUtils.getStr("SJSU_CSE_ID");
+      from = "sjsu";
 
     } else if ("https://hawaii.mycounsellor.ai".equals(origin)) {
-      channelContext.setAttribute("CSE_ID", EnvUtils.getStr("HAWAII_CSE_ID"));
-      channelContext.setAttribute("FROM", "hawaii");
+      cesId = EnvUtils.getStr("HAWAII_CSE_ID");
+      from = "hawaii";
 
     } else if ("https://stanford.mycounsellor.ai".equals(origin)) {
-      channelContext.setAttribute("CSE_ID", EnvUtils.getStr("STANFORD_CSE_ID"));
-      channelContext.setAttribute("FROM", "STANFORD");
+      cesId = EnvUtils.getStr("STANFORD_CSE_ID");
+      from = "STANFORD";
     } else {
-      channelContext.setAttribute("CSE_ID", EnvUtils.getStr("CSE_ID"));
-
+      cesId = EnvUtils.getStr("CSE_ID");
+      from = "all";
     }
-    log.info("open:{}", channelContext.getClientIpAndPort());
+    channelContext.setAttribute("CSE_ID", cesId);
+    channelContext.setAttribute("FROM", from);
+
+    log.info("open:{},{},{}", channelContext.getClientIpAndPort(), from, cesId);
     String json = JsonUtils.toJson(new ChatSignalVo("signal", "open"));
     WebSocketResponse webSocketResponse = WebSocketResponse.fromText(json, CHARSET);
     Tio.send(channelContext, webSocketResponse);
