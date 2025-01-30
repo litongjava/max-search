@@ -36,6 +36,7 @@ public class ChatWebSocketHandler implements IWebSocketHandler {
     String origin = httpRequest.getOrigin();
     String cesId = null;
     String from = null;
+    // Google Custom Search JSON API ID
     if ("https://sjsu.mycounsellor.ai".equals(origin)) {
       cesId = EnvUtils.getStr("SJSU_CSE_ID");
       from = "sjsu";
@@ -47,7 +48,13 @@ public class ChatWebSocketHandler implements IWebSocketHandler {
     } else if ("https://stanford.mycounsellor.ai".equals(origin)) {
       cesId = EnvUtils.getStr("STANFORD_CSE_ID");
       from = "STANFORD";
-    } else {
+
+    } else if ("https://berkeley.mycounsellor.ai".equals(origin)) {
+      cesId = EnvUtils.getStr("BERKELEY_CSE_ID");
+      from = "BERKELEY";
+    }
+
+    else {
       cesId = EnvUtils.getStr("CSE_ID");
       from = "all";
     }
