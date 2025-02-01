@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.model.body.RespBodyVo;
-import com.litongjava.model.web.WebPageConteont;
+import com.litongjava.model.web.WebPageContent;
 import com.litongjava.searxng.SearxngResult;
 import com.litongjava.searxng.SearxngSearchClient;
 import com.litongjava.searxng.SearxngSearchParam;
@@ -16,12 +16,12 @@ public class SearxngSearchService {
   public RespBodyVo search(String endpoint, SearxngSearchParam param, Boolean fetch, Integer limit) {
     SearxngSearchResponse searchResponse = SearxngSearchClient.search(endpoint, param);
     List<SearxngResult> results = searchResponse.getResults();
-    List<WebPageConteont> pages = new ArrayList<>();
+    List<WebPageContent> pages = new ArrayList<>();
     for (SearxngResult searxngResult : results) {
       String title = searxngResult.getTitle();
       String url = searxngResult.getUrl();
       String content = searxngResult.getContent();
-      pages.add(new WebPageConteont(title, url, content));
+      pages.add(new WebPageContent(title, url, content));
     }
     if (fetch != null && fetch) {
       if (limit == null) {

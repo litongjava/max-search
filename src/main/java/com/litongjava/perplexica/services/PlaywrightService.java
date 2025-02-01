@@ -9,7 +9,7 @@ import java.util.concurrent.locks.Lock;
 import com.google.common.util.concurrent.Striped;
 import com.litongjava.db.activerecord.Db;
 import com.litongjava.db.activerecord.Row;
-import com.litongjava.model.web.WebPageConteont;
+import com.litongjava.model.web.WebPageContent;
 import com.litongjava.perplexica.instance.PlaywrightBrowser;
 import com.litongjava.tio.utils.hutool.FilenameUtils;
 import com.litongjava.tio.utils.hutool.StrUtil;
@@ -25,7 +25,7 @@ public class PlaywrightService {
 
   public static final String cache_table_name = "palywright_brower_web_page_cache";
 
-  public List<WebPageConteont> spiderAsync(List<WebPageConteont> pages) {
+  public List<WebPageContent> spiderAsync(List<WebPageContent> pages) {
     List<Future<String>> futures = new ArrayList<>();
 
     for (int i = 0; i < pages.size(); i++) {

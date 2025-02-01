@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import com.jfinal.kit.Kv;
 import com.litongjava.jfinal.aop.Aop;
-import com.litongjava.perplexica.vo.SearchSimpleResult;
+import com.litongjava.model.web.WebPageContent;
 import com.litongjava.template.PromptEngine;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.json.JsonUtils;
@@ -17,12 +17,12 @@ public class LLmAiWsChatSearchServiceTest {
   @Test
   public void testGenerateSelectPrompt() {
     String question = "When is the first day of sjsu";
-    List<SearchSimpleResult> results = new ArrayList<>();
-    results.add(new SearchSimpleResult("Academic-Calendar-2024-25.pdf", "https://www.sjsu.edu/provost/docs/Academic-Calendar-2024-25.pdf",
+    List<WebPageContent> results = new ArrayList<>();
+    results.add(new WebPageContent("Academic-Calendar-2024-25.pdf", "https://www.sjsu.edu/provost/docs/Academic-Calendar-2024-25.pdf",
         //
         "First Day of Instruction – Classes Begin. Tuesday………………… February 18… ... SJSU Academic Year Calendar. 2024/25-Draft. October 24, 2023. Fall."));
 
-    results.add(new SearchSimpleResult("2024-2025 | Class Schedules", "https://www.sjsu.edu/classes/calendar/2024-2025.php",
+    results.add(new WebPageContent("2024-2025 | Class Schedules", "https://www.sjsu.edu/classes/calendar/2024-2025.php",
         //
         "First Day of Instruction, August 21, 2024, January 23, 2025 ; Enrollment Census Date*, September 18, 2024, February 19, 2025 ; Last Day of Instruction, December 9."));
 
