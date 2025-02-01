@@ -5,11 +5,11 @@ import java.util.List;
 
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.model.body.RespBodyVo;
+import com.litongjava.model.web.WebPageConteont;
 import com.litongjava.searxng.SearxngResult;
 import com.litongjava.searxng.SearxngSearchClient;
 import com.litongjava.searxng.SearxngSearchParam;
 import com.litongjava.searxng.SearxngSearchResponse;
-import com.litongjava.searxng.WebPageConteont;
 
 public class SearxngSearchService {
 

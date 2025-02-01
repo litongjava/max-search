@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.jfinal.kit.Kv;
 import com.litongjava.jfinal.aop.Aop;
-import com.litongjava.searxng.WebPageConteont;
+import com.litongjava.model.web.WebPageConteont;
 import com.litongjava.template.PromptEngine;
 import com.litongjava.tio.utils.json.JsonUtils;
 import com.litongjava.tio.utils.tag.TagUtils;
