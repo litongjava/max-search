@@ -9,6 +9,8 @@ import java.util.concurrent.locks.Lock;
 import com.google.common.util.concurrent.Striped;
 import com.jfinal.kit.Kv;
 import com.litongjava.db.activerecord.Db;
+import com.litongjava.deepseek.DeepSeekConst;
+import com.litongjava.deepseek.DeepSeekModels;
 import com.litongjava.gemini.GoogleGeminiModels;
 import com.litongjava.google.search.GoogleCustomSearchResponse;
 import com.litongjava.google.search.SearchResultItem;
@@ -22,6 +24,7 @@ import com.litongjava.openai.chat.OpenAiChatRequestVo;
 import com.litongjava.openai.client.OpenAiClient;
 import com.litongjava.openai.constants.PerplexityConstants;
 import com.litongjava.openai.constants.PerplexityModels;
+import com.litongjava.perplexica.callback.DeepSeekChatWebsocketCallback;
 import com.litongjava.perplexica.callback.GoogleChatWebsocketCallback;
 import com.litongjava.perplexica.callback.PplChatWebsocketCallback;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
@@ -92,13 +95,11 @@ public class LLmAiWsChatSearchService {
       jinaSearchRequest.setXSite("stanford.edu");
     }
     long answerMessageId = SnowflakeIdUtils.id();
-    //1.问题重写
-    // 省略
     //2.搜索
     ResponseVo searchResponse = JinaSearchClient.search(jinaSearchRequest);
-    
+
     String markdown = searchResponse.getBodyString();
-    if(!searchResponse.isOk()) {
+    if (!searchResponse.isOk()) {
       ChatWsRespVo<String> error = ChatWsRespVo.error(markdown, messageId);
       WebSocketResponse packet = WebSocketResponse.fromJson(error);
       if (channelContext != null) {
@@ -107,8 +108,9 @@ public class LLmAiWsChatSearchService {
       return null;
     }
 
+    //返回sources
     List<WebPageSource> sources = Aop.get(WebpageSourceService.class).getListWithCitationsVoFromJina(markdown);
-    
+
     ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
     chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId + "");
     WebSocketResponse packet = WebSocketResponse.fromJson(chatRespVo);
@@ -116,8 +118,8 @@ public class LLmAiWsChatSearchService {
     if (channelContext != null) {
       Tio.bSend(channelContext, packet);
     }
-  
 
+    // 大模型推理
     //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
     ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId + "", "");
     WebSocketResponse websocketResponse = WebSocketResponse.fromJson(vo);
@@ -136,14 +138,15 @@ public class LLmAiWsChatSearchService {
     messages.add(new OpenAiChatMessage("system", webSearchResponsePrompt));
     messages.add(new OpenAiChatMessage(content));
 
-    OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(GoogleGeminiModels.GEMINI_2_0_FLASH_EXP)
+    OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(DeepSeekModels.DEEPSEEK_CHAT)
         //
         .setMessages(messages).setMax_tokens(3000);
     chatRequestVo.setStream(true);
     long start = System.currentTimeMillis();
 
-    Callback callback = new GoogleChatWebsocketCallback(channelContext, sessionId, messageId, answerMessageId, start);
-    Call call = Aop.get(GeminiService.class).stream(chatRequestVo, callback);
+    Callback callback = new DeepSeekChatWebsocketCallback(channelContext, sessionId, messageId, answerMessageId, start);
+    String apiKey = EnvUtils.getStr("DEEPSEEK_API_KEY");
+    Call call = OpenAiClient.chatCompletions(DeepSeekConst.BASE_URL, apiKey, chatRequestVo, callback);
     return call;
   }
 
