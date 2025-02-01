@@ -7,6 +7,8 @@ import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import com.litongjava.jian.search.JinaSearchClient;
+import com.litongjava.model.web.WebPageConteont;
 import com.litongjava.perplexica.vo.CitationsVo;
 import com.litongjava.perplexica.vo.WebPageMetadata;
 import com.litongjava.perplexica.vo.WebPageSource;
@@ -118,5 +120,16 @@ public class WebpageSourceService {
       sources.add(webPageSource);
     }
     return sources;
+  }
+
+  public List<WebPageSource> getListWithCitationsVoFromJina(String markdown) {
+    List<WebPageConteont> list = JinaSearchClient.parse(markdown);
+    List<WebPageSource> retval = new ArrayList<>();
+
+    for (WebPageConteont webPageConteont : list) {
+      retval.add(new WebPageSource(webPageConteont.getTitle(), webPageConteont.getUrl(), webPageConteont.getContent()));
+      
+    }
+    return retval;
   }
 }

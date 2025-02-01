@@ -2,6 +2,7 @@ package com.litongjava.perplexica.handler;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.litongjava.jfinal.aop.Aop;
+import com.litongjava.perplexica.consts.WebSiteNames;
 import com.litongjava.perplexica.services.LLmAiWsChatSearchService;
 import com.litongjava.perplexica.vo.ChatSignalVo;
 import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
@@ -39,24 +40,22 @@ public class ChatWebSocketHandler implements IWebSocketHandler {
     // Google Custom Search JSON API ID
     if ("https://sjsu.mycounsellor.ai".equals(origin)) {
       cesId = EnvUtils.getStr("SJSU_CSE_ID");
-      from = "sjsu";
+      from = WebSiteNames.SJSU;
 
     } else if ("https://hawaii.mycounsellor.ai".equals(origin)) {
       cesId = EnvUtils.getStr("HAWAII_CSE_ID");
-      from = "hawaii";
+      from = WebSiteNames.HAWAII;
 
     } else if ("https://stanford.mycounsellor.ai".equals(origin)) {
       cesId = EnvUtils.getStr("STANFORD_CSE_ID");
-      from = "STANFORD";
+      from = WebSiteNames.HAWAII;
 
     } else if ("https://berkeley.mycounsellor.ai".equals(origin)) {
       cesId = EnvUtils.getStr("BERKELEY_CSE_ID");
-      from = "BERKELEY";
-    }
-
-    else {
+      from = WebSiteNames.BERKELEY;
+    } else {
       cesId = EnvUtils.getStr("CSE_ID");
-      from = "all";
+      from = WebSiteNames.ALL;
     }
     channelContext.setAttribute("CSE_ID", cesId);
     channelContext.setAttribute("FROM", from);
