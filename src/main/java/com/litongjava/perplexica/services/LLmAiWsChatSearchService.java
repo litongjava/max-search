@@ -138,9 +138,9 @@ public class LLmAiWsChatSearchService {
     messages.add(new OpenAiChatMessage("system", webSearchResponsePrompt));
     messages.add(new OpenAiChatMessage(content));
 
-    OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(DeepSeekModels.DEEPSEEK_CHAT)
+    OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(DeepSeekModels.DEEPSEEK_REASONER)
         //
-        .setMessages(messages).setMax_tokens(3000);
+        .setMessages(messages).setMax_tokens(8000);
     chatRequestVo.setStream(true);
     long start = System.currentTimeMillis();
 

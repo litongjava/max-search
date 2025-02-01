@@ -4,14 +4,11 @@ import java.io.IOException;
 import java.util.List;
 
 import com.jfinal.kit.Kv;
-import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.openai.chat.ChatResponseDelta;
 import com.litongjava.openai.chat.Choice;
 import com.litongjava.openai.chat.OpenAiChatResponseVo;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
-import com.litongjava.perplexica.services.WebpageSourceService;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
-import com.litongjava.perplexica.vo.WebPageSource;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.http.server.util.SseEmitter;
@@ -29,19 +26,16 @@ import okio.BufferedSource;
 @Slf4j
 public class DeepSeekChatWebsocketCallback implements Callback {
   private ChannelContext channelContext;
-  private String chatId;
-  private String quesitonMessageId;
+  private String sessionId;
   private long start;
+  private Long answerMessageId;
+  private String messageId;
 
-  public DeepSeekChatWebsocketCallback(ChannelContext channelContext, String sessionId, String messageId, long start) {
+  public DeepSeekChatWebsocketCallback(ChannelContext channelContext, String sessionId, String messageId, Long answerMessageId, long start) {
     this.channelContext = channelContext;
-    this.chatId = sessionId;
-    this.quesitonMessageId = messageId;
-    this.start = start;
-  }
-
-  public DeepSeekChatWebsocketCallback(ChannelContext channelContext2, String sessionId, String messageId, long answerMessageId, long start2) {
-    // TODO Auto-generated constructor stub
+    this.sessionId = sessionId;
+    this.messageId = messageId;
+    this.answerMessageId = answerMessageId;
   }
 
   @Override
@@ -49,7 +43,7 @@ public class DeepSeekChatWebsocketCallback implements Callback {
     ChatWsRespVo<String> error = ChatWsRespVo.error("CHAT_ERROR", e.getMessage());
     WebSocketResponse packet = WebSocketResponse.fromJson(error);
     Tio.bSend(channelContext, packet);
-    ChatWsStreamCallCan.remove(chatId);
+    ChatWsStreamCallCan.remove(sessionId);
     SseEmitter.closeSeeConnection(channelContext);
   }
 
@@ -74,7 +68,7 @@ public class DeepSeekChatWebsocketCallback implements Callback {
         return;
       }
       long answerMessageId = SnowflakeIdUtils.id();
-      StringBuffer completionContent = onChatGptResponseSuccess(channelContext, answerMessageId, start, responseBody);
+      StringBuffer completionContent = onResponseSuccess(channelContext, answerMessageId, start, responseBody);
       Kv end = Kv.by("type", "messageEnd").set("messageId", answerMessageId);
       Tio.bSend(channelContext, WebSocketResponse.fromJson(end));
 
@@ -94,7 +88,7 @@ public class DeepSeekChatWebsocketCallback implements Callback {
         //        }
       }
     }
-    ChatWsStreamCallCan.remove(chatId);
+    ChatWsStreamCallCan.remove(sessionId);
   }
 
   /**
@@ -105,11 +99,10 @@ public class DeepSeekChatWebsocketCallback implements Callback {
    * @return 完整内容
    * @throws IOException
    */
-  public StringBuffer onChatGptResponseSuccess(ChannelContext channelContext, Long answerMessageId, Long start, ResponseBody responseBody) throws IOException {
+  public StringBuffer onResponseSuccess(ChannelContext channelContext, Long answerMessageId, Long start, ResponseBody responseBody) throws IOException {
     StringBuffer completionContent = new StringBuffer();
     BufferedSource source = responseBody.source();
     String line;
-    boolean sentCitations = false;
 
     while ((line = source.readUtf8Line()) != null) {
       if (line.length() < 1) {
@@ -120,20 +113,6 @@ public class DeepSeekChatWebsocketCallback implements Callback {
         String data = line.substring(6);
         if (data.endsWith("}")) {
           OpenAiChatResponseVo chatResponse = FastJson2Utils.parse(data, OpenAiChatResponseVo.class);
-          List<String> citations = chatResponse.getCitations();
-          if (citations != null && !sentCitations) {
-            List<WebPageSource> sources = Aop.get(WebpageSourceService.class).getList(citations);
-            ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
-            chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId.toString());
-            WebSocketResponse packet = WebSocketResponse.fromJson(chatRespVo);
-            Tio.bSend(channelContext, packet);
-            sentCitations = true;
-            //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
-            Kv kv = Kv.by("type", "message").set("messageId", answerMessageId).set("data", "");
-            WebSocketResponse websocketResponse = WebSocketResponse.fromJson(kv);
-            Tio.bSend(channelContext, websocketResponse);
-
-          }
           List<Choice> choices = chatResponse.getChoices();
           if (!choices.isEmpty()) {
             ChatResponseDelta delta = choices.get(0).getDelta();
@@ -141,6 +120,12 @@ public class DeepSeekChatWebsocketCallback implements Callback {
             if (part != null && !part.isEmpty()) {
               completionContent.append(part);
               ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId.toString(), part);
+              Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
+            }
+
+            String reasoning_content = delta.getReasoning_content();
+            if (reasoning_content != null && !reasoning_content.isEmpty()) {
+              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId.toString(), reasoning_content);
               Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
             }
           }
