@@ -3,14 +3,17 @@ package com.litongjava.perplexica.services;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import com.google.common.util.concurrent.Striped;
 import com.jfinal.kit.Kv;
 import com.litongjava.db.activerecord.Db;
-import com.litongjava.deepseek.DeepSeekConst;
-import com.litongjava.deepseek.DeepSeekModels;
+import com.litongjava.gemini.GeminiChatRequestVo;
+import com.litongjava.gemini.GeminiClient;
+import com.litongjava.gemini.GeminiContentVo;
+import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.gemini.GoogleGeminiModels;
 import com.litongjava.google.search.GoogleCustomSearchResponse;
 import com.litongjava.google.search.SearchResultItem;
@@ -36,6 +39,8 @@ import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
 import com.litongjava.perplexica.vo.CitationsVo;
 import com.litongjava.perplexica.vo.WebPageSource;
+import com.litongjava.siliconflow.SiliconFlowConsts;
+import com.litongjava.siliconflow.SiliconFlowModels;
 import com.litongjava.template.PromptEngine;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
@@ -72,11 +77,18 @@ public class LLmAiWsChatSearchService {
       }
 
     }
-    Call call = jina(channelContext, sessionId, messageId, content);
-    ChatWsStreamCallCan.put(sessionId, call);
+    Call call = jina(channelContext, vo);
+    if (call != null) {
+      ChatWsStreamCallCan.put(sessionId, call);
+    }
   }
 
-  public Call jina(ChannelContext channelContext, String sessionId, String messageId, String content) {
+  public Call jina(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo) {
+
+    String sessionId = reqMessageVo.getMessage().getChatId();
+    String messageId = reqMessageVo.getMessage().getMessageId();
+    String content = reqMessageVo.getMessage().getContent();
+
     String from = channelContext.getString("FROM");
     JinaSearchRequest jinaSearchRequest = new JinaSearchRequest();
 
@@ -95,59 +107,131 @@ public class LLmAiWsChatSearchService {
       jinaSearchRequest.setXSite("stanford.edu");
     }
     long answerMessageId = SnowflakeIdUtils.id();
-    //2.搜索
-    ResponseVo searchResponse = JinaSearchClient.search(jinaSearchRequest);
+    String inputPrompt = genInputPrompt(channelContext, reqMessageVo, messageId, answerMessageId, jinaSearchRequest);
 
-    String markdown = searchResponse.getBodyString();
-    if (!searchResponse.isOk()) {
-      ChatWsRespVo<String> error = ChatWsRespVo.error(markdown, messageId);
-      WebSocketResponse packet = WebSocketResponse.fromJson(error);
-      if (channelContext != null) {
-        Tio.bSend(channelContext, packet);
+    return predictWithDeepSeek(channelContext, reqMessageVo, sessionId, messageId, answerMessageId, content, inputPrompt);
+  }
+
+  private Call predictWithDeepSeek(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, String sessionId, String messageId, long answerMessageId, String content, String inputPrompt) {
+    log.info("webSearchResponsePrompt:{}", inputPrompt);
+
+    List<OpenAiChatMessage> contents = new ArrayList<>();
+    if (inputPrompt != null) {
+      contents.add(new OpenAiChatMessage("system", inputPrompt));
+    }
+
+    List<List<String>> history = reqMessageVo.getHistory();
+    if (history != null && history.size() > 0) {
+      for (int i = 0; i < history.size(); i++) {
+        String role = history.get(i).get(0);
+        String message = history.get(i).get(1);
+        if ("human".equals(role)) {
+          role = "user";
+        } else {
+          role = "assistant";
+        }
+        contents.add(new OpenAiChatMessage(role, message));
       }
-      return null;
     }
 
-    //返回sources
-    List<WebPageSource> sources = Aop.get(WebpageSourceService.class).getListWithCitationsVoFromJina(markdown);
+    contents.add(new OpenAiChatMessage("user", content));
 
-    ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
-    chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId + "");
-    WebSocketResponse packet = WebSocketResponse.fromJson(chatRespVo);
-
-    if (channelContext != null) {
-      Tio.bSend(channelContext, packet);
-    }
-
-    // 大模型推理
-    //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
-    ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId + "", "");
-    WebSocketResponse websocketResponse = WebSocketResponse.fromJson(vo);
-    if (channelContext != null) {
-      Tio.bSend(channelContext, websocketResponse);
-    }
-
-    //6.推理
-    String isoTimeStr = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
-
-    Kv kv = Kv.by("date", isoTimeStr).set("context", markdown);
-    String webSearchResponsePrompt = PromptEngine.renderToString("WebSearchResponsePrompt.txt", kv);
-    log.info("webSearchResponsePrompt:{}", webSearchResponsePrompt);
-
-    List<OpenAiChatMessage> messages = new ArrayList<>();
-    messages.add(new OpenAiChatMessage("system", webSearchResponsePrompt));
-    messages.add(new OpenAiChatMessage(content));
-
-    OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(DeepSeekModels.DEEPSEEK_REASONER)
+    OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(SiliconFlowModels.DEEPSEEK_R1)
         //
-        .setMessages(messages).setMax_tokens(8000);
+        .setMessages(contents);
     chatRequestVo.setStream(true);
+
     long start = System.currentTimeMillis();
 
     Callback callback = new DeepSeekChatWebsocketCallback(channelContext, sessionId, messageId, answerMessageId, start);
-    String apiKey = EnvUtils.getStr("DEEPSEEK_API_KEY");
-    Call call = OpenAiClient.chatCompletions(DeepSeekConst.BASE_URL, apiKey, chatRequestVo, callback);
+    GeminiClient.debug = true;
+
+    String apiKey = EnvUtils.getStr("SILICONFLOW_API_KEY");
+    Call call = OpenAiClient.chatCompletions(SiliconFlowConsts.SELICONFLOW_API_BASE, apiKey, chatRequestVo, callback);
     return call;
+
+  }
+
+  private Call predictWithGemini(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, String sessionId, String messageId, long answerMessageId, String content, String inputPrompt) {
+    log.info("webSearchResponsePrompt:{}", inputPrompt);
+
+    List<GeminiContentVo> contents = new ArrayList<>();
+
+    List<List<String>> history = reqMessageVo.getHistory();
+    if (history != null && history.size() > 0) {
+      for (int i = 0; i < history.size(); i++) {
+        String role = history.get(i).get(0);
+        String message = history.get(i).get(1);
+        if ("human".equals(role)) {
+          role = "user";
+        } else {
+          role = "model";
+        }
+        contents.add(new GeminiContentVo(role, message));
+      }
+    }
+
+    if (inputPrompt != null) {
+      GeminiPartVo part = new GeminiPartVo(inputPrompt);
+      GeminiContentVo system = new GeminiContentVo("model", Collections.singletonList(part));
+      contents.add(system);
+    }
+    //Content with system role is not supported.
+    //Please use a valid role: user, model.
+    contents.add(new GeminiContentVo("user", content));
+    GeminiChatRequestVo reqVo = new GeminiChatRequestVo(contents);
+
+    long start = System.currentTimeMillis();
+
+    Callback callback = new GoogleChatWebsocketCallback(channelContext, sessionId, messageId, answerMessageId, start);
+    GeminiClient.debug = true;
+    Call call = GeminiClient.stream(GoogleGeminiModels.GEMINI_2_0_FLASH_EXP, reqVo, callback);
+    return call;
+  }
+
+  private String genInputPrompt(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, String messageId, long answerMessageId, JinaSearchRequest jinaSearchRequest) {
+    String inputPrompt = null;
+    if (reqMessageVo.getCopilotEnabled() != null && reqMessageVo.getCopilotEnabled()) {
+      //2.搜索
+      ResponseVo searchResponse = JinaSearchClient.search(jinaSearchRequest);
+
+      String markdown = searchResponse.getBodyString();
+      if (!searchResponse.isOk()) {
+        log.error(markdown);
+        ChatWsRespVo<String> error = ChatWsRespVo.error(markdown, messageId);
+        WebSocketResponse packet = WebSocketResponse.fromJson(error);
+        if (channelContext != null) {
+          Tio.bSend(channelContext, packet);
+        }
+        return null;
+      }
+
+      //返回sources
+      List<WebPageSource> sources = Aop.get(WebpageSourceService.class).getListWithCitationsVoFromJina(markdown);
+
+      ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
+      chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId + "");
+      WebSocketResponse packet = WebSocketResponse.fromJson(chatRespVo);
+
+      if (channelContext != null) {
+        Tio.bSend(channelContext, packet);
+      }
+
+      // 大模型推理
+      //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
+      ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId + "", "");
+      WebSocketResponse websocketResponse = WebSocketResponse.fromJson(vo);
+      if (channelContext != null) {
+        Tio.bSend(channelContext, websocketResponse);
+      }
+
+      //6.推理
+      String isoTimeStr = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
+
+      Kv kv = Kv.by("date", isoTimeStr).set("context", markdown);
+      inputPrompt = PromptEngine.renderToString("WebSearchResponsePrompt.txt", kv);
+    }
+    return inputPrompt;
   }
 
   public Call google(ChannelContext channelContext, String sessionId, String messageId, String content) {
@@ -224,7 +308,7 @@ public class LLmAiWsChatSearchService {
     log.info("webSearchResponsePrompt:{}", webSearchResponsePrompt);
 
     List<OpenAiChatMessage> messages = new ArrayList<>();
-    messages.add(new OpenAiChatMessage("system", webSearchResponsePrompt));
+    messages.add(new OpenAiChatMessage("assistant", webSearchResponsePrompt));
     messages.add(new OpenAiChatMessage(content));
 
     OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(GoogleGeminiModels.GEMINI_2_0_FLASH_EXP)
@@ -240,7 +324,7 @@ public class LLmAiWsChatSearchService {
 
   @SuppressWarnings("unused")
   private Call ppl(ChannelContext channelContext, String sessionId, String messageId, List<OpenAiChatMessage> messages) {
-    OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(PerplexityModels.llama_3_1_sonar_large_128k_online)
+    OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(PerplexityModels.LLAMA_3_1_SONAR_LARGE_128K_ONLINE)
         //
         .setMessages(messages).setMax_tokens(3000).setStream(true);
 

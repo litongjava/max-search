@@ -90,7 +90,7 @@ public class OpenAiV1ProxyHandler {
     if (bodyString != null) {
       openAiRequestVo = FastJson2Utils.parseObject(bodyString);
       stream = openAiRequestVo.getBoolean("stream");
-      openAiRequestVo.put("model", OpenAiModels.gpt_4o_mini);
+      openAiRequestVo.put("model", OpenAiModels.GPT_4O_MINI);
     }
 
     if (stream != null && stream) {

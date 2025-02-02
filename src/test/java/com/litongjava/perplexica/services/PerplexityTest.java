@@ -29,7 +29,7 @@ public class PerplexityTest {
     messages.add(new OpenAiChatMessage("user", "How are you?"));
 
     // Create chat request
-    OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(PerplexityModels.llama_3_1_sonar_small_128k_online)
+    OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(PerplexityModels.LLAMA_3_1_SONAR_SMALL_128K_ONLINE)
         //
         .setMessages(messages).setMax_tokens(3000)
         //

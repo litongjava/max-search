@@ -4,9 +4,10 @@ import java.io.IOException;
 import java.util.List;
 
 import com.jfinal.kit.Kv;
-import com.litongjava.openai.chat.ChatResponseDelta;
-import com.litongjava.openai.chat.Choice;
-import com.litongjava.openai.chat.OpenAiChatResponseVo;
+import com.litongjava.gemini.GeminiCandidateVo;
+import com.litongjava.gemini.GeminiChatResponseVo;
+import com.litongjava.gemini.GeminiContentResponseVo;
+import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
 import com.litongjava.tio.core.ChannelContext;
@@ -67,7 +68,7 @@ public class GoogleChatWebsocketCallback implements Callback {
         Tio.bSend(channelContext, webSocketResponse);
         return;
       }
-      StringBuffer completionContent = onChatGptResponseSuccess(channelContext, answerMessageId, start, responseBody);
+      StringBuffer completionContent = onResponse(channelContext, answerMessageId, start, responseBody);
       Kv end = Kv.by("type", "messageEnd").set("messageId", answerMessageId);
       Tio.bSend(channelContext, WebSocketResponse.fromJson(end));
 
@@ -98,11 +99,10 @@ public class GoogleChatWebsocketCallback implements Callback {
    * @return 完整内容
    * @throws IOException
    */
-  public StringBuffer onChatGptResponseSuccess(ChannelContext channelContext, Long answerMessageId, Long start, ResponseBody responseBody) throws IOException {
+  public StringBuffer onResponse(ChannelContext channelContext, Long answerMessageId, Long start, ResponseBody responseBody) throws IOException {
     StringBuffer completionContent = new StringBuffer();
     BufferedSource source = responseBody.source();
     String line;
-    boolean sentCitations = false;
 
     while ((line = source.readUtf8Line()) != null) {
       if (line.length() < 1) {
@@ -112,15 +112,17 @@ public class GoogleChatWebsocketCallback implements Callback {
       if (line.length() > 6) {
         String data = line.substring(6);
         if (data.endsWith("}")) {
-          OpenAiChatResponseVo chatResponse = FastJson2Utils.parse(data, OpenAiChatResponseVo.class);
-          List<String> citations = chatResponse.getCitations();
-          List<Choice> choices = chatResponse.getChoices();
-          if (!choices.isEmpty()) {
-            ChatResponseDelta delta = choices.get(0).getDelta();
-            String part = delta.getContent();
-            if (part != null && !part.isEmpty()) {
-              completionContent.append(part);
-              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId.toString(), part);
+          GeminiChatResponseVo chatResponse = FastJson2Utils.parse(data, GeminiChatResponseVo.class);
+
+          List<GeminiCandidateVo> candidates = chatResponse.getCandidates();
+          if (!candidates.isEmpty()) {
+            GeminiContentResponseVo content = candidates.get(0).getContent();
+            List<GeminiPartVo> parts = content.getParts();
+            GeminiPartVo geminiPartVo = parts.get(0);
+            String text = geminiPartVo.getText();
+            if (text != null && !text.isEmpty()) {
+              completionContent.append(text);
+              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId.toString(), text);
               Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
             }
           }

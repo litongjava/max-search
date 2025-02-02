@@ -28,6 +28,10 @@ public class ChatWsRespVo<T> {
 
   }
 
+  public static <T> ChatWsRespVo<T> keepAlive(String answerMessageId) {
+    return new ChatWsRespVo<T>().setType("keep-alive").setMessageId(answerMessageId);
+  }
+  
   public static <T> ChatWsRespVo<T> message(String answerMessageId,T data) {
     return new ChatWsRespVo<T>().setType("message").setMessageId(answerMessageId).setData(data);
   }

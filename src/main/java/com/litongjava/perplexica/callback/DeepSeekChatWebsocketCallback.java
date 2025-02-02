@@ -13,7 +13,6 @@ import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.http.server.util.SseEmitter;
 import com.litongjava.tio.utils.json.FastJson2Utils;
-import com.litongjava.tio.utils.snowflake.SnowflakeIdUtils;
 import com.litongjava.tio.websocket.common.WebSocketResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +49,8 @@ public class DeepSeekChatWebsocketCallback implements Callback {
   @Override
   public void onResponse(Call call, Response response) throws IOException {
     if (!response.isSuccessful()) {
-      String message = "Chat model response an unsuccessful message:" + response.body().string();
+      String string = response.body().string();
+      String message = "Chat model response an unsuccessful message:" + string;
       log.error("message:{}", message);
       ChatWsRespVo<String> data = ChatWsRespVo.error("STREAM_ERROR", message);
       WebSocketResponse webSocketResponse = WebSocketResponse.fromJson(data);
@@ -67,7 +67,6 @@ public class DeepSeekChatWebsocketCallback implements Callback {
         Tio.bSend(channelContext, webSocketResponse);
         return;
       }
-      long answerMessageId = SnowflakeIdUtils.id();
       StringBuffer completionContent = onResponseSuccess(channelContext, answerMessageId, start, responseBody);
       Kv end = Kv.by("type", "messageEnd").set("messageId", answerMessageId);
       Tio.bSend(channelContext, WebSocketResponse.fromJson(end));
@@ -128,6 +127,12 @@ public class DeepSeekChatWebsocketCallback implements Callback {
               ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId.toString(), reasoning_content);
               Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
             }
+          }
+        } else if (": keep-alive".equals(line)) {
+          ChatWsRespVo<String> vo = ChatWsRespVo.keepAlive(answerMessageId + "");
+          WebSocketResponse websocketResponse = WebSocketResponse.fromJson(vo);
+          if (channelContext != null) {
+            Tio.bSend(channelContext, websocketResponse);
           }
         } else {
           log.info("Data does not end with }:{}", line);
