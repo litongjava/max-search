@@ -20,7 +20,7 @@ public class WebSearchResponsePromptServiceTest {
 
     // 2. 调用大模型进行推理
     GeminiPredictService geminiSearchPredictService = Aop.get(GeminiPredictService.class);
-    geminiSearchPredictService.predictWithGemini(
+    geminiSearchPredictService.predict(
       null, null, null, null, null,
       userQuestion, prompt
     );

@@ -25,14 +25,14 @@ import okhttp3.ResponseBody;
 import okio.BufferedSource;
 
 @Slf4j
-public class GoogleChatWebsocketCallback implements Callback {
+public class GeminiSseCallback implements Callback {
   private ChannelContext channelContext;
   private Long chatId;
   private Long quesitonMessageId;
   private Long answerMessageId;
   private long start;
 
-  public GoogleChatWebsocketCallback(ChannelContext channelContext, Long sessionId, Long messageId, Long answerMessageId, long start) {
+  public GeminiSseCallback(ChannelContext channelContext, Long sessionId, Long messageId, Long answerMessageId, long start) {
     this.channelContext = channelContext;
     this.chatId = sessionId;
     this.quesitonMessageId = messageId;

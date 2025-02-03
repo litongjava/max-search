@@ -19,8 +19,7 @@ import com.litongjava.openai.chat.OpenAiChatRequestVo;
 import com.litongjava.openai.client.OpenAiClient;
 import com.litongjava.openai.constants.PerplexityConstants;
 import com.litongjava.openai.constants.PerplexityModels;
-import com.litongjava.perplexica.callback.DeepSeekChatWebsocketCallback;
-import com.litongjava.perplexica.callback.GoogleChatWebsocketCallback;
+import com.litongjava.perplexica.callback.GeminiSseCallback;
 import com.litongjava.perplexica.callback.PplChatWebsocketCallback;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
 import com.litongjava.perplexica.consts.FocusMode;
@@ -32,8 +31,6 @@ import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
 import com.litongjava.perplexica.vo.CitationsVo;
 import com.litongjava.perplexica.vo.WebPageSource;
-import com.litongjava.siliconflow.SiliconFlowConsts;
-import com.litongjava.siliconflow.SiliconFlowModels;
 import com.litongjava.template.PromptEngine;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
@@ -92,54 +89,38 @@ public class WsChatService {
       String inputPrompt = webSearchResponsePromptService.genInputPrompt(channelContext, content, copilotEnabled,
           //
           messageQuestionId, answerMessageId, from);
-      call = geminiPredictService.predictWithGemini(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, inputPrompt);
+      call = geminiPredictService.predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, inputPrompt);
 
     } else if (FocusMode.translator.equals(focusMode)) {
       String inputPrompt = Aop.get(TranslatorPromptService.class).genInputPrompt(channelContext, content, copilotEnabled, messageQuestionId, messageQuestionId, from);
-      call = geminiPredictService.predictWithGemini(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, inputPrompt);
+      call = geminiPredictService.predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, inputPrompt);
+
+    } else if (FocusMode.deepSeek.equals(focusMode)) {
+      Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, null);
+
+    } else if (FocusMode.mathAssistant.equals(focusMode)) {
+      Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, null);
+    } else {
+      // 5. 向前端通知一个空消息，标识搜索结束，开始推理
+      //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
+      ChatWsRespVo<String> chatVo = ChatWsRespVo.message(answerMessageId, "");
+      WebSocketResponse websocketResponse = WebSocketResponse.fromJson(chatVo);
+      if (channelContext != null) {
+        Tio.bSend(channelContext, websocketResponse);
+      }
+
+      chatVo = ChatWsRespVo.message(answerMessageId, "Sorry Developing");
+      websocketResponse = WebSocketResponse.fromJson(chatVo);
+      if (channelContext != null) {
+        Tio.bSend(channelContext, websocketResponse);
+        Kv end = Kv.by("type", "messageEnd").set("messageId", answerMessageId);
+        Tio.bSend(channelContext, WebSocketResponse.fromJson(end));
+      }
     }
 
     if (call != null) {
       ChatWsStreamCallCan.put(sessionId.toString(), call);
     }
-  }
-
-  private Call predictWithDeepSeek(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, String sessionId, String messageId, long answerMessageId, String content, String inputPrompt) {
-    log.info("webSearchResponsePrompt:{}", inputPrompt);
-
-    List<OpenAiChatMessage> contents = new ArrayList<>();
-    if (inputPrompt != null) {
-      contents.add(new OpenAiChatMessage("system", inputPrompt));
-    }
-
-    List<List<String>> history = reqMessageVo.getHistory();
-    if (history != null && history.size() > 0) {
-      for (int i = 0; i < history.size(); i++) {
-        String role = history.get(i).get(0);
-        String message = history.get(i).get(1);
-        if ("human".equals(role)) {
-          role = "user";
-        } else {
-          role = "assistant";
-        }
-        contents.add(new OpenAiChatMessage(role, message));
-      }
-    }
-
-    contents.add(new OpenAiChatMessage("user", content));
-
-    OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(SiliconFlowModels.DEEPSEEK_R1)
-        //
-        .setMessages(contents);
-    chatRequestVo.setStream(true);
-
-    long start = System.currentTimeMillis();
-
-    Callback callback = new DeepSeekChatWebsocketCallback(channelContext, sessionId, messageId, answerMessageId, start);
-    String apiKey = EnvUtils.getStr("SILICONFLOW_API_KEY");
-    Call call = OpenAiClient.chatCompletions(SiliconFlowConsts.SELICONFLOW_API_BASE, apiKey, chatRequestVo, callback);
-    return call;
-
   }
 
   public Call google(ChannelContext channelContext, Long sessionId, Long messageId, String content) {
@@ -225,7 +206,7 @@ public class WsChatService {
     chatRequestVo.setStream(true);
     long start = System.currentTimeMillis();
 
-    Callback callback = new GoogleChatWebsocketCallback(channelContext, sessionId, messageId, answerMessageId, start);
+    Callback callback = new GeminiSseCallback(channelContext, sessionId, messageId, answerMessageId, start);
     Call call = Aop.get(GeminiService.class).stream(chatRequestVo, callback);
     return call;
   }

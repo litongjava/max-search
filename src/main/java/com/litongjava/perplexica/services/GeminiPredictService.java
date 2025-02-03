@@ -11,7 +11,7 @@ import com.litongjava.gemini.GeminiContentVo;
 import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.gemini.GeminiSystemInstructionVo;
 import com.litongjava.gemini.GoogleGeminiModels;
-import com.litongjava.perplexica.callback.GoogleChatWebsocketCallback;
+import com.litongjava.perplexica.callback.GeminiSseCallback;
 import com.litongjava.perplexica.consts.FocusMode;
 import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
@@ -26,7 +26,7 @@ import okhttp3.Callback;
 
 @Slf4j
 public class GeminiPredictService {
-  public Call predictWithGemini(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo,
+  public Call predict(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo,
       //
       Long sessionId, Long quesitonMessageId, Long answerMessageId, String content, String inputPrompt) {
     // log.info("webSearchResponsePrompt:{}", inputPrompt);
@@ -85,7 +85,7 @@ public class GeminiPredictService {
     // 6. 流式/一次性获取结果
     Call call = null;
     if (channelContext != null) {
-      Callback callback = new GoogleChatWebsocketCallback(channelContext, sessionId, quesitonMessageId, answerMessageId, start);
+      Callback callback = new GeminiSseCallback(channelContext, sessionId, quesitonMessageId, answerMessageId, start);
       call = GeminiClient.stream(GoogleGeminiModels.GEMINI_2_0_FLASH_EXP, reqVo, callback);
     } else {
       GeminiChatResponseVo vo = GeminiClient.generate(GoogleGeminiModels.GEMINI_2_0_FLASH_EXP, reqVo);

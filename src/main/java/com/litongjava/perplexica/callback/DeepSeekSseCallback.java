@@ -8,6 +8,7 @@ import com.litongjava.openai.chat.ChatResponseDelta;
 import com.litongjava.openai.chat.Choice;
 import com.litongjava.openai.chat.OpenAiChatResponseVo;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
+import com.litongjava.perplexica.model.PerplexicaChatMessage;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
@@ -23,18 +24,19 @@ import okhttp3.ResponseBody;
 import okio.BufferedSource;
 
 @Slf4j
-public class DeepSeekChatWebsocketCallback implements Callback {
+public class DeepSeekSseCallback implements Callback {
   private ChannelContext channelContext;
-  private String sessionId;
-  private long start;
+  private Long sessionId;
+  private Long messageId;
   private Long answerMessageId;
-  private String messageId;
+  private Long start;
 
-  public DeepSeekChatWebsocketCallback(ChannelContext channelContext, String sessionId, String messageId, Long answerMessageId, long start) {
+  public DeepSeekSseCallback(ChannelContext channelContext, Long sessionId, Long messageId, Long answerMessageId, Long start) {
     this.channelContext = channelContext;
     this.sessionId = sessionId;
     this.messageId = messageId;
     this.answerMessageId = answerMessageId;
+    this.start=start;
   }
 
   @Override
@@ -42,7 +44,7 @@ public class DeepSeekChatWebsocketCallback implements Callback {
     ChatWsRespVo<String> error = ChatWsRespVo.error("CHAT_ERROR", e.getMessage());
     WebSocketResponse packet = WebSocketResponse.fromJson(error);
     Tio.bSend(channelContext, packet);
-    ChatWsStreamCallCan.remove(sessionId);
+    ChatWsStreamCallCan.remove(sessionId + "");
     SseEmitter.closeSeeConnection(channelContext);
   }
 
@@ -68,6 +70,13 @@ public class DeepSeekChatWebsocketCallback implements Callback {
         return;
       }
       StringBuffer completionContent = onResponseSuccess(channelContext, answerMessageId, start, responseBody);
+   // save user mesasge
+      new PerplexicaChatMessage().setId(answerMessageId).setChatId(sessionId)
+          //
+          .setRole("assistant").setContent(completionContent.toString())
+          //
+          .save();
+      
       Kv end = Kv.by("type", "messageEnd").set("messageId", answerMessageId);
       Tio.bSend(channelContext, WebSocketResponse.fromJson(end));
 
@@ -75,7 +84,7 @@ public class DeepSeekChatWebsocketCallback implements Callback {
       long endTime = System.currentTimeMillis();
       log.info("finish llm in {} (ms)", (endTime - start));
 
-      log.info("completionContent:{}", completionContent);
+      //log.info("completionContent:{}", completionContent);
       if (completionContent != null && !completionContent.toString().isEmpty()) {
         //        TableResult<Kv> tr = Aop.get(LlmChatHistoryService.class).saveAssistant(answerId, chatId, completionContent.toString());
         //        if (tr.getCode() != 1) {
@@ -87,7 +96,7 @@ public class DeepSeekChatWebsocketCallback implements Callback {
         //        }
       }
     }
-    ChatWsStreamCallCan.remove(sessionId);
+    ChatWsStreamCallCan.remove(sessionId + "");
   }
 
   /**
