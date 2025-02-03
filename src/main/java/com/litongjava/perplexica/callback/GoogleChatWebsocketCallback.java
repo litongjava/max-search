@@ -9,6 +9,7 @@ import com.litongjava.gemini.GeminiChatResponseVo;
 import com.litongjava.gemini.GeminiContentResponseVo;
 import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
+import com.litongjava.perplexica.model.PerplexicaChatMessage;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
@@ -69,6 +70,12 @@ public class GoogleChatWebsocketCallback implements Callback {
         return;
       }
       StringBuffer completionContent = onResponse(channelContext, answerMessageId, start, responseBody);
+      // save user mesasge
+      new PerplexicaChatMessage().setId(answerMessageId).setChatId(chatId)
+          //
+          .setRole("assistant").setContent(completionContent.toString())
+          //
+          .save();
       Kv end = Kv.by("type", "messageEnd").set("messageId", answerMessageId);
       Tio.bSend(channelContext, WebSocketResponse.fromJson(end));
 

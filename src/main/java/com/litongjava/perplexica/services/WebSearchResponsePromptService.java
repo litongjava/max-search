@@ -32,14 +32,6 @@ public class WebSearchResponsePromptService {
       // 1. 进行搜索（可选：SearxNG 或 Jina）
       //String markdown = searchWithJina(channelContext, content, messageId, answerMessageId, from);
       String markdown = searchWithSearxNg(channelContext, content, messageId, answerMessageId, from);
-      // 2. 向前端通知一个空消息，标识搜索结束，开始推理
-      //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
-      ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, "");
-      WebSocketResponse websocketResponse = WebSocketResponse.fromJson(vo);
-      if (channelContext != null) {
-        Tio.bSend(channelContext, websocketResponse);
-      }
-
       String isoTimeStr = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
       // 3. 使用 PromptEngine 模版引擎填充提示词
       Kv kv = Kv.by("date", isoTimeStr).set("context", markdown);

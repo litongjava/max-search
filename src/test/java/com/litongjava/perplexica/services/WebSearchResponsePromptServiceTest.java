@@ -19,7 +19,7 @@ public class WebSearchResponsePromptServiceTest {
       .genInputPrompt(null, userQuestion, true, null, null, null);
 
     // 2. 调用大模型进行推理
-    GeminiSearchPredictService geminiSearchPredictService = Aop.get(GeminiSearchPredictService.class);
+    GeminiPredictService geminiSearchPredictService = Aop.get(GeminiPredictService.class);
     geminiSearchPredictService.predictWithGemini(
       null, null, null, null, null,
       userQuestion, prompt

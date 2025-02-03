@@ -9,7 +9,6 @@ import java.util.concurrent.locks.Lock;
 import com.google.common.util.concurrent.Striped;
 import com.jfinal.kit.Kv;
 import com.litongjava.db.activerecord.Db;
-import com.litongjava.gemini.GeminiClient;
 import com.litongjava.gemini.GoogleGeminiModels;
 import com.litongjava.google.search.GoogleCustomSearchResponse;
 import com.litongjava.google.search.SearchResultItem;
@@ -24,7 +23,9 @@ import com.litongjava.perplexica.callback.DeepSeekChatWebsocketCallback;
 import com.litongjava.perplexica.callback.GoogleChatWebsocketCallback;
 import com.litongjava.perplexica.callback.PplChatWebsocketCallback;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
+import com.litongjava.perplexica.consts.FocusMode;
 import com.litongjava.perplexica.consts.PerTableNames;
+import com.litongjava.perplexica.model.PerplexicaChatMessage;
 import com.litongjava.perplexica.model.PerplexicaChatSession;
 import com.litongjava.perplexica.vo.ChatReqMessage;
 import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
@@ -48,42 +49,55 @@ import okhttp3.Call;
 import okhttp3.Callback;
 
 @Slf4j
-public class WsChatSearchService {
+public class WsChatService {
   private static final Striped<Lock> sessionLocks = Striped.lock(64);
+  GeminiPredictService geminiPredictService = Aop.get(GeminiPredictService.class);
 
   /**
    * 使用搜索模型处理消息
   */
-  public void processMessageBySearchModel(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo) {
+  public void dispatch(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo) {
     Long userId = reqMessageVo.getUserId();
     ChatReqMessage message = reqMessageVo.getMessage();
     Long sessionId = message.getChatId();
-    Long messageId = message.getMessageId();
+    Long messageQuestionId = message.getMessageId();
     String content = message.getContent();
     // create chat or save message
+    String focusMode = reqMessageVo.getFocusMode();
     if (!Db.exists(PerTableNames.perplexica_chat_session, "id", sessionId)) {
       Lock lock = sessionLocks.get(sessionId);
       lock.lock();
       try {
         TioThreadUtils.execute(() -> {
           String summary = Aop.get(SummaryQuestionService.class).summary(content);
-          new PerplexicaChatSession().setId(sessionId).setUserId(userId).setTitle(summary).save();
+          new PerplexicaChatSession().setId(sessionId).setUserId(userId).setTitle(summary).setFocusMode(focusMode).save();
         });
       } finally {
         lock.unlock();
       }
 
     }
+    // save user mesasge
+    new PerplexicaChatMessage().setId(messageQuestionId).setChatId(sessionId)
+        //
+        .setRole("user").setContent(content).save();
 
     String from = channelContext.getString("FROM");
-    String focusMode = reqMessageVo.getFocusMode();
-    WebSearchResponsePromptService webSearchResponsePromptService = Aop.get(WebSearchResponsePromptService.class);
+    Boolean copilotEnabled = reqMessageVo.getCopilotEnabled();
+    Call call = null;
     long answerMessageId = SnowflakeIdUtils.id();
-    String inputPrompt = webSearchResponsePromptService.genInputPrompt(channelContext, content, reqMessageVo.getCopilotEnabled(),
-        //
-        messageId, answerMessageId, from);
-    GeminiSearchPredictService geminiSearchPredictService = Aop.get(GeminiSearchPredictService.class);
-    Call call = geminiSearchPredictService.predictWithGemini(channelContext, reqMessageVo, sessionId, messageId, answerMessageId, content, inputPrompt);
+    log.info("focusMode:{},{}", userId, focusMode);
+    if (FocusMode.webSearch.equals(focusMode)) {
+      WebSearchResponsePromptService webSearchResponsePromptService = Aop.get(WebSearchResponsePromptService.class);
+      String inputPrompt = webSearchResponsePromptService.genInputPrompt(channelContext, content, copilotEnabled,
+          //
+          messageQuestionId, answerMessageId, from);
+      call = geminiPredictService.predictWithGemini(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, inputPrompt);
+
+    } else if (FocusMode.translator.equals(focusMode)) {
+      String inputPrompt = Aop.get(TranslatorPromptService.class).genInputPrompt(channelContext, content, copilotEnabled, messageQuestionId, messageQuestionId, from);
+      call = geminiPredictService.predictWithGemini(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, inputPrompt);
+    }
 
     if (call != null) {
       ChatWsStreamCallCan.put(sessionId.toString(), call);
