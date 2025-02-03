@@ -3,7 +3,7 @@ package com.litongjava.perplexica.handler;
 import com.alibaba.fastjson2.JSONObject;
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.perplexica.consts.WebSiteNames;
-import com.litongjava.perplexica.services.LLmAiWsChatSearchService;
+import com.litongjava.perplexica.services.WsChatSearchService;
 import com.litongjava.perplexica.vo.ChatSignalVo;
 import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
@@ -93,7 +93,7 @@ public class ChatWebSocketHandler implements IWebSocketHandler {
       ChatWsReqMessageVo vo = FastJson2Utils.parse(text, ChatWsReqMessageVo.class);
       log.info("message:{}", text);
       try {
-        Aop.get(LLmAiWsChatSearchService.class).processMessageBySearchModel(channelContext, vo);
+        Aop.get(WsChatSearchService.class).processMessageBySearchModel(channelContext, vo);
       } catch (Exception e) {
         log.error(e.getMessage(), e);
         ChatWsRespVo<String> error = ChatWsRespVo.error(e.getClass().toGenericString(), e.getMessage());

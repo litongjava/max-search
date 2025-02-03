@@ -40,6 +40,7 @@ import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.json.JsonUtils;
 import com.litongjava.tio.utils.snowflake.SnowflakeIdUtils;
 import com.litongjava.tio.utils.tag.TagUtils;
+import com.litongjava.tio.utils.thread.TioThreadUtils;
 import com.litongjava.tio.websocket.common.WebSocketResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +48,7 @@ import okhttp3.Call;
 import okhttp3.Callback;
 
 @Slf4j
-public class LLmAiWsChatSearchService {
+public class WsChatSearchService {
   private static final Striped<Lock> sessionLocks = Striped.lock(64);
 
   /**
@@ -64,7 +65,10 @@ public class LLmAiWsChatSearchService {
       Lock lock = sessionLocks.get(sessionId);
       lock.lock();
       try {
-        new PerplexicaChatSession().setId(sessionId).setUserId(userId).save();
+        TioThreadUtils.execute(() -> {
+          String summary = Aop.get(SummaryQuestionService.class).summary(content);
+          new PerplexicaChatSession().setId(sessionId).setUserId(userId).setTitle(summary).save();
+        });
       } finally {
         lock.unlock();
       }
@@ -72,6 +76,7 @@ public class LLmAiWsChatSearchService {
     }
 
     String from = channelContext.getString("FROM");
+    String focusMode = reqMessageVo.getFocusMode();
     WebSearchResponsePromptService webSearchResponsePromptService = Aop.get(WebSearchResponsePromptService.class);
     long answerMessageId = SnowflakeIdUtils.id();
     String inputPrompt = webSearchResponsePromptService.genInputPrompt(channelContext, content, reqMessageVo.getCopilotEnabled(),
@@ -117,8 +122,6 @@ public class LLmAiWsChatSearchService {
     long start = System.currentTimeMillis();
 
     Callback callback = new DeepSeekChatWebsocketCallback(channelContext, sessionId, messageId, answerMessageId, start);
-    GeminiClient.debug = true;
-
     String apiKey = EnvUtils.getStr("SILICONFLOW_API_KEY");
     Call call = OpenAiClient.chatCompletions(SiliconFlowConsts.SELICONFLOW_API_BASE, apiKey, chatRequestVo, callback);
     return call;
