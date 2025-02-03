@@ -9,31 +9,22 @@ import com.litongjava.model.db.IBean;
 @SuppressWarnings({"serial", "unchecked"})
 public abstract class BasePerplexicaChatMessage<M extends BasePerplexicaChatMessage<M>> extends Model<M> implements IBean {
 
-	public M setId(java.lang.String id) {
+	public M setId(java.lang.Long id) {
 		set("id", id);
 		return (M)this;
 	}
 	
-	public java.lang.String getId() {
-		return getStr("id");
+	public java.lang.Long getId() {
+		return getLong("id");
 	}
 	
-	public M setSessionId(java.lang.String sessionId) {
-		set("session_id", sessionId);
+	public M setChatId(java.lang.Long chatId) {
+		set("chat_id", chatId);
 		return (M)this;
 	}
 	
-	public java.lang.String getSessionId() {
-		return getStr("session_id");
-	}
-	
-	public M setContent(java.lang.String content) {
-		set("content", content);
-		return (M)this;
-	}
-	
-	public java.lang.String getContent() {
-		return getStr("content");
+	public java.lang.Long getChatId() {
+		return getLong("chat_id");
 	}
 	
 	public M setRole(java.lang.String role) {
@@ -43,6 +34,15 @@ public abstract class BasePerplexicaChatMessage<M extends BasePerplexicaChatMess
 	
 	public java.lang.String getRole() {
 		return getStr("role");
+	}
+	
+	public M setContent(java.lang.String content) {
+		set("content", content);
+		return (M)this;
+	}
+	
+	public java.lang.String getContent() {
+		return getStr("content");
 	}
 	
 	public M setRewrited(java.lang.String rewrited) {

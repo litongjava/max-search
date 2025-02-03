@@ -13,14 +13,14 @@ public class PerplexicaChatMessage extends BasePerplexicaChatMessage<PerplexicaC
 	 */
   public static final String tableName = "perplexica_chat_message";
   public static final String primaryKey = "id";
-  //java.lang.String 
+  //java.lang.Long 
   public static final String id = "id";
-  //java.lang.String 
-  public static final String sessionId = "session_id";
-  //java.lang.String 
-  public static final String content = "content";
+  //java.lang.Long 
+  public static final String chatId = "chat_id";
   //java.lang.String 
   public static final String role = "role";
+  //java.lang.String 
+  public static final String content = "content";
   //java.lang.String 
   public static final String rewrited = "rewrited";
   //java.lang.String 
