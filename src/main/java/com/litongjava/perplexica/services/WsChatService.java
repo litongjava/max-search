@@ -100,6 +100,10 @@ public class WsChatService {
 
     } else if (FocusMode.mathAssistant.equals(focusMode)) {
       Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, null);
+
+    } else if (FocusMode.writingAssistant.equals(focusMode)) {
+      String inputPrompt = PromptEngine.renderToString("writing_assistant_prompt.txt");
+      Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, inputPrompt);
     } else {
       // 5. 向前端通知一个空消息，标识搜索结束，开始推理
       //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
