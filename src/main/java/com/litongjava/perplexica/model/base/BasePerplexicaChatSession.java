@@ -9,22 +9,22 @@ import com.litongjava.model.db.IBean;
 @SuppressWarnings({"serial", "unchecked"})
 public abstract class BasePerplexicaChatSession<M extends BasePerplexicaChatSession<M>> extends Model<M> implements IBean {
 
-	public M setId(java.lang.String id) {
+	public M setId(java.lang.Long id) {
 		set("id", id);
 		return (M)this;
 	}
 	
-	public java.lang.String getId() {
-		return getStr("id");
+	public java.lang.Long getId() {
+		return getLong("id");
 	}
 	
-	public M setUserId(java.lang.String userId) {
+	public M setUserId(java.lang.Long userId) {
 		set("user_id", userId);
 		return (M)this;
 	}
 	
-	public java.lang.String getUserId() {
-		return getStr("user_id");
+	public java.lang.Long getUserId() {
+		return getLong("user_id");
 	}
 	
 	public M setTitle(java.lang.String title) {

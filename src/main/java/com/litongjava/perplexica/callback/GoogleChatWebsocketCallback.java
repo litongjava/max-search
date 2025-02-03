@@ -26,12 +26,12 @@ import okio.BufferedSource;
 @Slf4j
 public class GoogleChatWebsocketCallback implements Callback {
   private ChannelContext channelContext;
-  private String chatId;
-  private String quesitonMessageId;
+  private Long chatId;
+  private Long quesitonMessageId;
   private Long answerMessageId;
   private long start;
 
-  public GoogleChatWebsocketCallback(ChannelContext channelContext, String sessionId, String messageId, Long answerMessageId, long start) {
+  public GoogleChatWebsocketCallback(ChannelContext channelContext, Long sessionId, Long messageId, Long answerMessageId, long start) {
     this.channelContext = channelContext;
     this.chatId = sessionId;
     this.quesitonMessageId = messageId;
@@ -44,7 +44,7 @@ public class GoogleChatWebsocketCallback implements Callback {
     ChatWsRespVo<String> error = ChatWsRespVo.error("CHAT_ERROR", e.getMessage());
     WebSocketResponse packet = WebSocketResponse.fromJson(error);
     Tio.bSend(channelContext, packet);
-    ChatWsStreamCallCan.remove(chatId);
+    ChatWsStreamCallCan.remove(chatId.toString());
     SseEmitter.closeSeeConnection(channelContext);
   }
 
@@ -76,7 +76,7 @@ public class GoogleChatWebsocketCallback implements Callback {
       long endTime = System.currentTimeMillis();
       log.info("finish llm in {} (ms)", (endTime - start));
 
-      log.info("completionContent:{}", completionContent);
+      //log.info("completionContent:{}", completionContent);
       if (completionContent != null && !completionContent.toString().isEmpty()) {
         //        TableResult<Kv> tr = Aop.get(LlmChatHistoryService.class).saveAssistant(answerId, chatId, completionContent.toString());
         //        if (tr.getCode() != 1) {
@@ -88,7 +88,7 @@ public class GoogleChatWebsocketCallback implements Callback {
         //        }
       }
     }
-    ChatWsStreamCallCan.remove(chatId);
+    ChatWsStreamCallCan.remove(chatId.toString());
   }
 
   /**
@@ -122,7 +122,7 @@ public class GoogleChatWebsocketCallback implements Callback {
             String text = geminiPartVo.getText();
             if (text != null && !text.isEmpty()) {
               completionContent.append(text);
-              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId.toString(), text);
+              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, text);
               Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
             }
           }

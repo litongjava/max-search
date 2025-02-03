@@ -120,7 +120,7 @@ public class PplChatWebsocketCallback implements Callback {
           if (citations != null && !sentCitations) {
             List<WebPageSource> sources = Aop.get(WebpageSourceService.class).getList(citations);
             ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
-            chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId.toString());
+            chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId);
             WebSocketResponse packet = WebSocketResponse.fromJson(chatRespVo);
             Tio.bSend(channelContext, packet);
             sentCitations = true;
@@ -136,7 +136,7 @@ public class PplChatWebsocketCallback implements Callback {
             String part = delta.getContent();
             if (part != null && !part.isEmpty()) {
               completionContent.append(part);
-              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId.toString(), part);
+              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, part);
               Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
             }
           }

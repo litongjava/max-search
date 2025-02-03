@@ -37,7 +37,7 @@ public class SpiderService {
           bodyText = PlaywrightBrowser.getBodyContent(link);
         } catch (Exception e) {
           log.error(e.getMessage(), e);
-          vo = ChatWsRespVo.message(answerMessageId + "", "Error Failed to get " + link + " " + e.getMessage());
+          vo = ChatWsRespVo.message(answerMessageId, "Error Failed to get " + link + " " + e.getMessage());
           websocketResponse = WebSocketResponse.fromJson(vo);
           if (channelContext != null) {
             Tio.bSend(channelContext, websocketResponse);
@@ -70,7 +70,7 @@ public class SpiderService {
             return "source " + (index + 1) + " " + bodyText + "\n\n";
           } catch (Exception e) {
             log.error("Error getting content from {}: {}", link, e.getMessage(), e);
-            ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId + "", "Error Failed to get " + link + " " + e.getMessage());
+            ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, "Error Failed to get " + link + " " + e.getMessage());
             WebSocketResponse websocketResponse = WebSocketResponse.fromJson(vo);
             if (channelContext != null) {
               Tio.bSend(channelContext, websocketResponse);

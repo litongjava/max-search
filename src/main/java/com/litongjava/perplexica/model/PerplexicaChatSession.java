@@ -13,9 +13,9 @@ public class PerplexicaChatSession extends BasePerplexicaChatSession<PerplexicaC
 	 */
   public static final String tableName = "perplexica_chat_session";
   public static final String primaryKey = "id";
-  //java.lang.String 
+  //java.lang.Long 
   public static final String id = "id";
-  //java.lang.String 
+  //java.lang.Long 
   public static final String userId = "user_id";
   //java.lang.String 
   public static final String title = "title";

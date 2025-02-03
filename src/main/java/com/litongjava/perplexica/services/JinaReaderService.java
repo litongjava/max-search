@@ -9,21 +9,19 @@ import java.util.concurrent.locks.Lock;
 import com.google.common.util.concurrent.Striped;
 import com.litongjava.db.activerecord.Db;
 import com.litongjava.db.activerecord.Row;
+import com.litongjava.jian.reader.JinaReaderClient;
 import com.litongjava.model.web.WebPageContent;
-import com.litongjava.perplexica.instance.PlaywrightBrowser;
-import com.litongjava.tio.utils.hutool.FilenameUtils;
 import com.litongjava.tio.utils.hutool.StrUtil;
 import com.litongjava.tio.utils.snowflake.SnowflakeIdUtils;
 import com.litongjava.tio.utils.thread.TioThreadUtils;
-import com.microsoft.playwright.BrowserContext;
-import com.microsoft.playwright.Page;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class PlaywrightService {
-
+public class JinaReaderService {
   public static final String cache_table_name = "web_page_cache";
+  //使用Guava的Striped锁，设置256个锁段
+  private static final Striped<Lock> stripedLocks = Striped.lock(256);
 
   public List<WebPageContent> spiderAsync(List<WebPageContent> pages) {
     List<Future<String>> futures = new ArrayList<>();
@@ -32,13 +30,7 @@ public class PlaywrightService {
       String link = pages.get(i).getUrl();
 
       Future<String> future = TioThreadUtils.submit(() -> {
-        String suffix = FilenameUtils.getSuffix(link);
-        if ("pdf".equalsIgnoreCase(suffix)) {
-          log.info("skip:{}", suffix);
-          return null;
-        } else {
-          return getPageContent(link);
-        }
+        return getPageContent(link);
       });
       futures.add(i, future);
     }
@@ -56,14 +48,11 @@ public class PlaywrightService {
     return pages;
   }
 
-  //使用Guava的Striped锁，设置64个锁段
-  private static final Striped<Lock> stripedLocks = Striped.lock(64);
-
   private String getPageContent(String link) {
     // 首先检查数据库中是否已存在该页面内容
     if (Db.exists(cache_table_name, "url", link)) {
       // 假设 content 字段存储了页面内容
-      return Db.queryStr("SELECT text FROM " + cache_table_name + " WHERE url = ?", link);
+      return Db.queryStr("SELECT markdown FROM " + cache_table_name + " WHERE url = ?", link);
     }
 
     // 获取与链接对应的锁并锁定
@@ -72,32 +61,20 @@ public class PlaywrightService {
     try {
       // 再次检查，防止其他线程已生成内容
       if (Db.exists(cache_table_name, "url", link)) {
-        return Db.queryStr("SELECT text FROM " + cache_table_name + " WHERE url = ?", link);
+        return Db.queryStr("SELECT markdown FROM " + cache_table_name + " WHERE url = ?", link);
       }
-      // 使用 PlaywrightBrowser 获取页面内容
-      BrowserContext context = PlaywrightBrowser.acquire();
-      String html = null;
-      String bodyText = null;
-      try (Page page = context.newPage()) {
-        page.navigate(link);
-        bodyText = page.innerText("body");
-        html = page.content();
-      } catch (Exception e) {
-        log.error("Error getting content from {}: {}", link, e.getMessage(), e);
-      } finally {
-        PlaywrightBrowser.release(context);
-      }
+      // 使用 Jina Reader Client 获取页面内容
+      String markdown = JinaReaderClient.read(link);
       // 将获取到的页面内容保存到数据库
-      if (bodyText != null && !bodyText.isEmpty()) {
+      if (markdown != null && !markdown.isEmpty()) {
         // 构造数据库实体或使用直接 SQL 插入
         Row newRow = new Row();
         newRow.set("id", SnowflakeIdUtils.id()).set("url", link)
             //
-            .set("text", bodyText).set("html", html);
+            .set("markdown", markdown);
         Db.save(cache_table_name, newRow);
       }
-
-      return bodyText;
+      return markdown;
     } finally {
       lock.unlock();
     }

@@ -118,18 +118,18 @@ public class DeepSeekChatWebsocketCallback implements Callback {
             String part = delta.getContent();
             if (part != null && !part.isEmpty()) {
               completionContent.append(part);
-              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId.toString(), part);
+              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, part);
               Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
             }
 
             String reasoning_content = delta.getReasoning_content();
             if (reasoning_content != null && !reasoning_content.isEmpty()) {
-              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId.toString(), reasoning_content);
+              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, reasoning_content);
               Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
             }
           }
         } else if (": keep-alive".equals(line)) {
-          ChatWsRespVo<String> vo = ChatWsRespVo.keepAlive(answerMessageId + "");
+          ChatWsRespVo<String> vo = ChatWsRespVo.keepAlive(answerMessageId);
           WebSocketResponse websocketResponse = WebSocketResponse.fromJson(vo);
           if (channelContext != null) {
             Tio.bSend(channelContext, websocketResponse);

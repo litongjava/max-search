@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class ChatWsReqMessageVo {
   private String type;
+  private Long userId;
   private ChatReqMessage message;
   private List<String> files;
   private String focusMode;

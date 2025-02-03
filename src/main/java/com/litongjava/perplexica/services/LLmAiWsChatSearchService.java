@@ -3,24 +3,17 @@ package com.litongjava.perplexica.services;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import com.google.common.util.concurrent.Striped;
 import com.jfinal.kit.Kv;
 import com.litongjava.db.activerecord.Db;
-import com.litongjava.gemini.GeminiChatRequestVo;
 import com.litongjava.gemini.GeminiClient;
-import com.litongjava.gemini.GeminiContentVo;
-import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.gemini.GoogleGeminiModels;
 import com.litongjava.google.search.GoogleCustomSearchResponse;
 import com.litongjava.google.search.SearchResultItem;
 import com.litongjava.jfinal.aop.Aop;
-import com.litongjava.jian.search.JinaSearchClient;
-import com.litongjava.jian.search.JinaSearchRequest;
-import com.litongjava.model.http.response.ResponseVo;
 import com.litongjava.model.web.WebPageContent;
 import com.litongjava.openai.chat.OpenAiChatMessage;
 import com.litongjava.openai.chat.OpenAiChatRequestVo;
@@ -32,7 +25,6 @@ import com.litongjava.perplexica.callback.GoogleChatWebsocketCallback;
 import com.litongjava.perplexica.callback.PplChatWebsocketCallback;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
 import com.litongjava.perplexica.consts.PerTableNames;
-import com.litongjava.perplexica.consts.WebSiteNames;
 import com.litongjava.perplexica.model.PerplexicaChatSession;
 import com.litongjava.perplexica.vo.ChatReqMessage;
 import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
@@ -61,55 +53,36 @@ public class LLmAiWsChatSearchService {
   /**
    * 使用搜索模型处理消息
   */
-  public void processMessageBySearchModel(ChannelContext channelContext, ChatWsReqMessageVo vo) {
-    ChatReqMessage message = vo.getMessage();
-    String sessionId = message.getChatId();
-    String messageId = message.getMessageId();
+  public void processMessageBySearchModel(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo) {
+    Long userId = reqMessageVo.getUserId();
+    ChatReqMessage message = reqMessageVo.getMessage();
+    Long sessionId = message.getChatId();
+    Long messageId = message.getMessageId();
     String content = message.getContent();
     // create chat or save message
-    if (Db.exists(PerTableNames.perplexica_chat_session, "id", sessionId)) {
+    if (!Db.exists(PerTableNames.perplexica_chat_session, "id", sessionId)) {
       Lock lock = sessionLocks.get(sessionId);
       lock.lock();
       try {
-        new PerplexicaChatSession().setId(sessionId).setUserId(content);
+        new PerplexicaChatSession().setId(sessionId).setUserId(userId).save();
       } finally {
         lock.unlock();
       }
 
     }
-    Call call = jina(channelContext, vo);
-    if (call != null) {
-      ChatWsStreamCallCan.put(sessionId, call);
-    }
-  }
-
-  public Call jina(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo) {
-
-    String sessionId = reqMessageVo.getMessage().getChatId();
-    String messageId = reqMessageVo.getMessage().getMessageId();
-    String content = reqMessageVo.getMessage().getContent();
 
     String from = channelContext.getString("FROM");
-    JinaSearchRequest jinaSearchRequest = new JinaSearchRequest();
-
-    jinaSearchRequest.setQ(content);
-
-    if (WebSiteNames.BERKELEY.equals(from)) {
-      jinaSearchRequest.setXSite("berkeley.edu");
-
-    } else if (WebSiteNames.HAWAII.equals(from)) {
-      jinaSearchRequest.setXSite("hawaii.edu");
-
-    } else if (WebSiteNames.SJSU.equals(from)) {
-      jinaSearchRequest.setXSite("sjsu.edu");
-
-    } else if (WebSiteNames.STANFORD.equals(from)) {
-      jinaSearchRequest.setXSite("stanford.edu");
-    }
+    WebSearchResponsePromptService webSearchResponsePromptService = Aop.get(WebSearchResponsePromptService.class);
     long answerMessageId = SnowflakeIdUtils.id();
-    String inputPrompt = genInputPrompt(channelContext, reqMessageVo, messageId, answerMessageId, jinaSearchRequest);
+    String inputPrompt = webSearchResponsePromptService.genInputPrompt(channelContext, content, reqMessageVo.getCopilotEnabled(),
+        //
+        messageId, answerMessageId, from);
+    GeminiSearchPredictService geminiSearchPredictService = Aop.get(GeminiSearchPredictService.class);
+    Call call = geminiSearchPredictService.predictWithGemini(channelContext, reqMessageVo, sessionId, messageId, answerMessageId, content, inputPrompt);
 
-    return predictWithDeepSeek(channelContext, reqMessageVo, sessionId, messageId, answerMessageId, content, inputPrompt);
+    if (call != null) {
+      ChatWsStreamCallCan.put(sessionId.toString(), call);
+    }
   }
 
   private Call predictWithDeepSeek(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, String sessionId, String messageId, long answerMessageId, String content, String inputPrompt) {
@@ -152,89 +125,7 @@ public class LLmAiWsChatSearchService {
 
   }
 
-  private Call predictWithGemini(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, String sessionId, String messageId, long answerMessageId, String content, String inputPrompt) {
-    log.info("webSearchResponsePrompt:{}", inputPrompt);
-
-    List<GeminiContentVo> contents = new ArrayList<>();
-
-    List<List<String>> history = reqMessageVo.getHistory();
-    if (history != null && history.size() > 0) {
-      for (int i = 0; i < history.size(); i++) {
-        String role = history.get(i).get(0);
-        String message = history.get(i).get(1);
-        if ("human".equals(role)) {
-          role = "user";
-        } else {
-          role = "model";
-        }
-        contents.add(new GeminiContentVo(role, message));
-      }
-    }
-
-    if (inputPrompt != null) {
-      GeminiPartVo part = new GeminiPartVo(inputPrompt);
-      GeminiContentVo system = new GeminiContentVo("model", Collections.singletonList(part));
-      contents.add(system);
-    }
-    //Content with system role is not supported.
-    //Please use a valid role: user, model.
-    contents.add(new GeminiContentVo("user", content));
-    GeminiChatRequestVo reqVo = new GeminiChatRequestVo(contents);
-
-    long start = System.currentTimeMillis();
-
-    Callback callback = new GoogleChatWebsocketCallback(channelContext, sessionId, messageId, answerMessageId, start);
-    GeminiClient.debug = true;
-    Call call = GeminiClient.stream(GoogleGeminiModels.GEMINI_2_0_FLASH_EXP, reqVo, callback);
-    return call;
-  }
-
-  private String genInputPrompt(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, String messageId, long answerMessageId, JinaSearchRequest jinaSearchRequest) {
-    String inputPrompt = null;
-    if (reqMessageVo.getCopilotEnabled() != null && reqMessageVo.getCopilotEnabled()) {
-      //2.搜索
-      ResponseVo searchResponse = JinaSearchClient.search(jinaSearchRequest);
-
-      String markdown = searchResponse.getBodyString();
-      if (!searchResponse.isOk()) {
-        log.error(markdown);
-        ChatWsRespVo<String> error = ChatWsRespVo.error(markdown, messageId);
-        WebSocketResponse packet = WebSocketResponse.fromJson(error);
-        if (channelContext != null) {
-          Tio.bSend(channelContext, packet);
-        }
-        return null;
-      }
-
-      //返回sources
-      List<WebPageSource> sources = Aop.get(WebpageSourceService.class).getListWithCitationsVoFromJina(markdown);
-
-      ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
-      chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId + "");
-      WebSocketResponse packet = WebSocketResponse.fromJson(chatRespVo);
-
-      if (channelContext != null) {
-        Tio.bSend(channelContext, packet);
-      }
-
-      // 大模型推理
-      //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
-      ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId + "", "");
-      WebSocketResponse websocketResponse = WebSocketResponse.fromJson(vo);
-      if (channelContext != null) {
-        Tio.bSend(channelContext, websocketResponse);
-      }
-
-      //6.推理
-      String isoTimeStr = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
-
-      Kv kv = Kv.by("date", isoTimeStr).set("context", markdown);
-      inputPrompt = PromptEngine.renderToString("WebSearchResponsePrompt.txt", kv);
-    }
-    return inputPrompt;
-  }
-
-  public Call google(ChannelContext channelContext, String sessionId, String messageId, String content) {
+  public Call google(ChannelContext channelContext, Long sessionId, Long messageId, String content) {
     String cseId = (String) channelContext.getString("CSE_ID");
 
     long answerMessageId = SnowflakeIdUtils.id();
@@ -264,7 +155,7 @@ public class LLmAiWsChatSearchService {
       //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
 
       if (channelContext != null) {
-        ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId + "", "");
+        ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, "");
         Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
         vo = ChatWsRespVo.message(messageId, "Sorry,not found");
         log.info("not found:{}", content);
@@ -284,7 +175,7 @@ public class LLmAiWsChatSearchService {
     if (citationList.size() > 0) {
       List<WebPageSource> sources = Aop.get(WebpageSourceService.class).getListWithCitationsVo(citationList);
       ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
-      chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId + "");
+      chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId);
       WebSocketResponse packet = WebSocketResponse.fromJson(chatRespVo);
 
       if (channelContext != null) {
@@ -293,7 +184,7 @@ public class LLmAiWsChatSearchService {
     }
 
     //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
-    ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId + "", "");
+    ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, "");
     WebSocketResponse websocketResponse = WebSocketResponse.fromJson(vo);
     if (channelContext != null) {
       Tio.bSend(channelContext, websocketResponse);

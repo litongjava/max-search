@@ -5,7 +5,7 @@ import org.junit.Test;
 import com.litongjava.jian.search.JinaSearchClient;
 import com.litongjava.tio.utils.environment.EnvUtils;
 
-public class JinaSearchServiceTest {
+public class JinaSearchClientTest {
 
   @Test
   public void test() {

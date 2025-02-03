@@ -12,7 +12,7 @@ import lombok.experimental.Accessors;
 public class ChatWsRespVo<T> {
   private String type;
   private T data;
-  private String messageId;
+  private Long messageId;
   private String key;
 
   public static ChatWsRespVo<String> error(String key, String message) {
@@ -28,15 +28,15 @@ public class ChatWsRespVo<T> {
 
   }
 
-  public static <T> ChatWsRespVo<T> keepAlive(String answerMessageId) {
+  public static <T> ChatWsRespVo<T> keepAlive(Long answerMessageId) {
     return new ChatWsRespVo<T>().setType("keep-alive").setMessageId(answerMessageId);
   }
   
-  public static <T> ChatWsRespVo<T> message(String answerMessageId,T data) {
+  public static <T> ChatWsRespVo<T> message(Long answerMessageId,T data) {
     return new ChatWsRespVo<T>().setType("message").setMessageId(answerMessageId).setData(data);
   }
 
-  public static ChatWsRespVo<Void> messageEnd(String answerMessageId) {
+  public static ChatWsRespVo<Void> messageEnd(Long answerMessageId) {
     return new ChatWsRespVo<Void>().setType("messageEnd").setMessageId(answerMessageId);
   }
 }

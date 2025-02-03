@@ -1,7 +1,9 @@
 package com.litongjava.perplexica.handler;
 
+import java.util.List;
+
 import com.litongjava.jfinal.aop.Aop;
-import com.litongjava.model.body.RespBodyVo;
+import com.litongjava.model.web.WebPageContent;
 import com.litongjava.perplexica.services.SearxngSearchService;
 import com.litongjava.searxng.SearxngSearchParam;
 import com.litongjava.tio.boot.http.TioRequestContext;
@@ -48,11 +50,8 @@ public class SearxngSearchHandler {
     param.setNo_cache(no_cache);
     param.setTheme(theme);
 
-    String baseUrl = EnvUtils.getStr("SEARXNG_API_URL");
-    String endpoint = baseUrl + "/search";
-
     // 使用封装后的参数调用服务
-    RespBodyVo body = Aop.get(SearxngSearchService.class).search(endpoint, param, fetch, limit);
-    return TioRequestContext.getResponse().setJson(body);
+    List<WebPageContent> pages = Aop.get(SearxngSearchService.class).search(param, fetch, limit);
+    return TioRequestContext.getResponse().setJson(pages);
   }
 }

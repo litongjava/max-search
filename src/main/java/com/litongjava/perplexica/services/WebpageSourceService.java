@@ -121,15 +121,4 @@ public class WebpageSourceService {
     }
     return sources;
   }
-
-  public List<WebPageSource> getListWithCitationsVoFromJina(String markdown) {
-    List<WebPageContent> list = JinaSearchClient.parse(markdown);
-    List<WebPageSource> retval = new ArrayList<>();
-
-    for (WebPageContent webPageConteont : list) {
-      retval.add(new WebPageSource(webPageConteont.getTitle(), webPageConteont.getUrl(), webPageConteont.getContent()));
-      
-    }
-    return retval;
-  }
 }

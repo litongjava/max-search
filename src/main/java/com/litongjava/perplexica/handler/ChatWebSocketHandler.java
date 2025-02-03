@@ -6,6 +6,7 @@ import com.litongjava.perplexica.consts.WebSiteNames;
 import com.litongjava.perplexica.services.LLmAiWsChatSearchService;
 import com.litongjava.perplexica.vo.ChatSignalVo;
 import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
+import com.litongjava.perplexica.vo.ChatWsRespVo;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.http.common.HttpRequest;
@@ -91,7 +92,15 @@ public class ChatWebSocketHandler implements IWebSocketHandler {
     if ("message".equals(type)) {
       ChatWsReqMessageVo vo = FastJson2Utils.parse(text, ChatWsReqMessageVo.class);
       log.info("message:{}", text);
-      Aop.get(LLmAiWsChatSearchService.class).processMessageBySearchModel(channelContext, vo);
+      try {
+        Aop.get(LLmAiWsChatSearchService.class).processMessageBySearchModel(channelContext, vo);
+      } catch (Exception e) {
+        log.error(e.getMessage(), e);
+        ChatWsRespVo<String> error = ChatWsRespVo.error(e.getClass().toGenericString(), e.getMessage());
+        WebSocketResponse packet = WebSocketResponse.fromJson(error);
+        Tio.bSend(channelContext, packet);
+      }
+
     }
     return null; // 不需要额外的返回值
   }
