@@ -20,7 +20,7 @@ import com.litongjava.openai.client.OpenAiClient;
 import com.litongjava.openai.constants.PerplexityConstants;
 import com.litongjava.openai.constants.PerplexityModels;
 import com.litongjava.perplexica.callback.GeminiSseCallback;
-import com.litongjava.perplexica.callback.PplChatWebsocketCallback;
+import com.litongjava.perplexica.callback.PerplexiticySeeCallback;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
 import com.litongjava.perplexica.consts.FocusMode;
 import com.litongjava.perplexica.consts.PerTableNames;
@@ -99,7 +99,8 @@ public class WsChatService {
       Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, null);
 
     } else if (FocusMode.mathAssistant.equals(focusMode)) {
-      Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, null);
+      String inputPrompt = PromptEngine.renderToString("math_assistant_prompt.txt");
+      Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, inputPrompt);
 
     } else if (FocusMode.writingAssistant.equals(focusMode)) {
       String inputPrompt = PromptEngine.renderToString("writing_assistant_prompt.txt");
@@ -227,7 +228,7 @@ public class WsChatService {
     chatRequestVo.setStream(true);
     long start = System.currentTimeMillis();
 
-    Callback callback = new PplChatWebsocketCallback(channelContext, sessionId, messageId, start);
+    Callback callback = new PerplexiticySeeCallback(channelContext, sessionId, messageId, start);
     Call call = OpenAiClient.chatCompletions(PerplexityConstants.SERVER_URL, pplApiKey, chatRequestVo, callback);
     return call;
   }

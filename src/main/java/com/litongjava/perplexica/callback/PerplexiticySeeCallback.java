@@ -27,13 +27,13 @@ import okhttp3.ResponseBody;
 import okio.BufferedSource;
 
 @Slf4j
-public class PplChatWebsocketCallback implements Callback {
+public class PerplexiticySeeCallback implements Callback {
   private ChannelContext channelContext;
   private String chatId;
   private String quesitonMessageId;
   private long start;
 
-  public PplChatWebsocketCallback(ChannelContext channelContext, String sessionId, String messageId, long start) {
+  public PerplexiticySeeCallback(ChannelContext channelContext, String sessionId, String messageId, long start) {
     this.channelContext = channelContext;
     this.chatId = sessionId;
     this.quesitonMessageId = messageId;

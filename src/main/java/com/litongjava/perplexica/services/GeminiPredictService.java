@@ -62,7 +62,7 @@ public class GeminiPredictService {
       //Content with system role is not supported.
       //Please use a valid role: user, model.
       // 3. 再将用户问题以 role = "user" 的形式添加
-      contents.add(new GeminiContentVo("user", content + ". You must reply using the my language."));
+      contents.add(new GeminiContentVo("user", content + ". You must reply using the my this message language."));
 
     } else if (FocusMode.translator.equals(focusMode)) {
       GeminiPartVo geminiPartVo = new GeminiPartVo(inputPrompt);
