@@ -11,8 +11,10 @@ import com.litongjava.gemini.GeminiContentVo;
 import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.gemini.GeminiSystemInstructionVo;
 import com.litongjava.gemini.GoogleGeminiModels;
+import com.litongjava.openai.chat.ChatMessage;
 import com.litongjava.perplexica.callback.GeminiSseCallback;
 import com.litongjava.perplexica.consts.FocusMode;
+import com.litongjava.perplexica.vo.ChatParamVo;
 import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
 import com.litongjava.tio.core.ChannelContext;
@@ -28,23 +30,31 @@ import okhttp3.Callback;
 public class GeminiPredictService {
   public Call predict(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo,
       //
-      Long sessionId, Long quesitonMessageId, Long answerMessageId, String content, String inputPrompt) {
+      ChatParamVo chatParamVo) {
+    Long sessionId = reqMessageVo.getMessage().getChatId();
+    Long quesitonMessageId = reqMessageVo.getMessage().getMessageId();
+    String content = reqMessageVo.getMessage().getContent();
+
+    Long answerMessageId = chatParamVo.getAnswerMessageId();
+    String inputPrompt = chatParamVo.getInputPrompt();
+
     // log.info("webSearchResponsePrompt:{}", inputPrompt);
 
     List<GeminiContentVo> contents = new ArrayList<>();
     // 1. 如果有对话历史，则构建 role = user / model 的上下文内容
-    if (reqMessageVo != null) {
-      List<List<String>> history = reqMessageVo.getHistory();
+    List<ChatMessage> history = chatParamVo.getHistory();
+    if (history != null) {
+
       if (history != null && history.size() > 0) {
         for (int i = 0; i < history.size(); i++) {
-          String role = history.get(i).get(0);
-          String message = history.get(i).get(1);
+          ChatMessage chatMessage = history.get(i);
+          String role = chatMessage.getRole();
           if ("human".equals(role)) {
             role = "user";
           } else {
             role = "model";
           }
-          contents.add(new GeminiContentVo(role, message));
+          contents.add(new GeminiContentVo(role, chatMessage.getContent()));
         }
       }
 

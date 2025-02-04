@@ -11,7 +11,7 @@ public class ChatsService {
     List<PerplexicaChatSession> chats = PerplexicaChatSession.dao.find(sql, userId);
     return chats;
   }
-  
+
   public PerplexicaChatSession getById(Long id) {
     String sql = "select id,title,focus_mode,created_at,files from perplexica_chat_session where id=?";
     return PerplexicaChatSession.dao.findFirst(sql, id);

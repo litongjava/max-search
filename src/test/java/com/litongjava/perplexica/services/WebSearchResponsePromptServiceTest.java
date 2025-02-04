@@ -8,7 +8,6 @@ import com.litongjava.perplexica.config.EnjoyEngineConfig;
 import com.litongjava.tio.boot.testing.TioBootTest;
 
 public class WebSearchResponsePromptServiceTest {
-
   @Test
   public void test() {
     TioBootTest.runWith(AdminAppConfig.class, EnjoyEngineConfig.class);
@@ -20,9 +19,5 @@ public class WebSearchResponsePromptServiceTest {
 
     // 2. 调用大模型进行推理
     GeminiPredictService geminiSearchPredictService = Aop.get(GeminiPredictService.class);
-    geminiSearchPredictService.predict(
-      null, null, null, null, null,
-      userQuestion, prompt
-    );
   }
 }

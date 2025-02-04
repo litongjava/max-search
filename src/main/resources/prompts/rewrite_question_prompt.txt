@@ -1,0 +1,20 @@
+You will be given a conversation below and a follow up question. You need to rephrase the follow-up question if needed so it is a standalone question that can be used to search the web for information.
+If it is a writing task or a simple hi, hello rather than a question, you need to return `not_needed` as the response.
+
+Example:
+1. Follow up question: What is the capital of France?
+Rephrased: Capital of france
+
+2. Follow up question: What is the population of New York City?
+Rephrased: Population of New York City
+
+3. Follow up question: when is the first day of sjsu spring 2025
+Rephrased: site:sjsu.edu first day of spring 2025
+
+Conversation:
+#for(message : messages)
+#(message.role): #(message.content)
+#end
+
+Follow up question: #(query)
+Rephrased question:

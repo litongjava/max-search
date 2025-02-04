@@ -14,6 +14,7 @@ import com.litongjava.google.search.GoogleCustomSearchResponse;
 import com.litongjava.google.search.SearchResultItem;
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.model.web.WebPageContent;
+import com.litongjava.openai.chat.ChatMessage;
 import com.litongjava.openai.chat.OpenAiChatMessage;
 import com.litongjava.openai.chat.OpenAiChatRequestVo;
 import com.litongjava.openai.client.OpenAiClient;
@@ -26,6 +27,7 @@ import com.litongjava.perplexica.consts.FocusMode;
 import com.litongjava.perplexica.consts.PerTableNames;
 import com.litongjava.perplexica.model.PerplexicaChatMessage;
 import com.litongjava.perplexica.model.PerplexicaChatSession;
+import com.litongjava.perplexica.vo.ChatParamVo;
 import com.litongjava.perplexica.vo.ChatReqMessage;
 import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
@@ -54,11 +56,13 @@ public class WsChatService {
    * 使用搜索模型处理消息
   */
   public void dispatch(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo) {
-    Long userId = reqMessageVo.getUserId();
     ChatReqMessage message = reqMessageVo.getMessage();
+    Long userId = reqMessageVo.getUserId();
     Long sessionId = message.getChatId();
     Long messageQuestionId = message.getMessageId();
     String content = message.getContent();
+
+    ChatParamVo chatParamVo = new ChatParamVo();
     // create chat or save message
     String focusMode = reqMessageVo.getFocusMode();
     if (!Db.exists(PerTableNames.perplexica_chat_session, "id", sessionId)) {
@@ -74,26 +78,51 @@ public class WsChatService {
       }
 
     }
+    // query history
+    List<ChatMessage> history = Aop.get(ChatMessgeService.class).getHistoryById(sessionId);
+    chatParamVo.setHistory(history);
+
+    if (content.length() > 30 || history.size() > 0) {
+      String rewrited = Aop.get(RewriteQuestionService.class).rewrite(content, history);
+      chatParamVo.setRewrited(rewrited);
+      if (channelContext != null) {
+        Kv end = Kv.by("type", "rewrited").set("content", rewrited);
+        Tio.bSend(channelContext, WebSocketResponse.fromJson(end));
+      }
+    }
+
     // save user mesasge
     new PerplexicaChatMessage().setId(messageQuestionId).setChatId(sessionId)
         //
         .setRole("user").setContent(content).save();
 
     String from = channelContext.getString("FROM");
+    chatParamVo.setFrom(from);
+
     Boolean copilotEnabled = reqMessageVo.getCopilotEnabled();
     Call call = null;
     long answerMessageId = SnowflakeIdUtils.id();
+    chatParamVo.setAnswerMessageId(answerMessageId);
+
     log.info("focusMode:{},{}", userId, focusMode);
     if (FocusMode.webSearch.equals(focusMode)) {
       WebSearchResponsePromptService webSearchResponsePromptService = Aop.get(WebSearchResponsePromptService.class);
-      String inputPrompt = webSearchResponsePromptService.genInputPrompt(channelContext, content, copilotEnabled,
+      String quesiton = null;
+      if (chatParamVo.getRewrited() != null) {
+        quesiton = chatParamVo.getRewrited();
+      } else {
+        quesiton = content;
+      }
+      String inputPrompt = webSearchResponsePromptService.genInputPrompt(channelContext, quesiton, copilotEnabled,
           //
           messageQuestionId, answerMessageId, from);
-      call = geminiPredictService.predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, inputPrompt);
+      chatParamVo.setInputPrompt(inputPrompt);
+      call = geminiPredictService.predict(channelContext, reqMessageVo, chatParamVo);
 
     } else if (FocusMode.translator.equals(focusMode)) {
       String inputPrompt = Aop.get(TranslatorPromptService.class).genInputPrompt(channelContext, content, copilotEnabled, messageQuestionId, messageQuestionId, from);
-      call = geminiPredictService.predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, inputPrompt);
+      chatParamVo.setInputPrompt(inputPrompt);
+      call = geminiPredictService.predict(channelContext, reqMessageVo, chatParamVo);
 
     } else if (FocusMode.deepSeek.equals(focusMode)) {
       Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, null);
