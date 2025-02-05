@@ -22,11 +22,16 @@
   <dependencies>
 
     <dependency>
+      <groupId>com.litongjava</groupId>
+      <artifactId>java-maxkb</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
       <groupId>com.alibaba</groupId>
       <artifactId>druid</artifactId>
       <version>0.2.9</version>
     </dependency>
-    
+
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>

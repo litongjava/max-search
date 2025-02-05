@@ -51,6 +51,7 @@ import okhttp3.Callback;
 public class WsChatService {
   private static final Striped<Lock> sessionLocks = Striped.lock(64);
   GeminiPredictService geminiPredictService = Aop.get(GeminiPredictService.class);
+  private AiSerchService aiSerchService = Aop.get(AiSerchService.class);
 
   /**
    * 使用搜索模型处理消息
@@ -106,18 +107,7 @@ public class WsChatService {
 
     log.info("focusMode:{},{}", userId, focusMode);
     if (FocusMode.webSearch.equals(focusMode)) {
-      WebSearchResponsePromptService webSearchResponsePromptService = Aop.get(WebSearchResponsePromptService.class);
-      String quesiton = null;
-      if (chatParamVo.getRewrited() != null) {
-        quesiton = chatParamVo.getRewrited();
-      } else {
-        quesiton = content;
-      }
-      String inputPrompt = webSearchResponsePromptService.genInputPrompt(channelContext, quesiton, copilotEnabled,
-          //
-          messageQuestionId, answerMessageId, from);
-      chatParamVo.setInputPrompt(inputPrompt);
-      call = geminiPredictService.predict(channelContext, reqMessageVo, chatParamVo);
+      call = aiSerchService.search(channelContext, reqMessageVo, chatParamVo);
 
     } else if (FocusMode.translator.equals(focusMode)) {
       String inputPrompt = Aop.get(TranslatorPromptService.class).genInputPrompt(channelContext, content, copilotEnabled, messageQuestionId, messageQuestionId, from);
