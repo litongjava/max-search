@@ -77,8 +77,8 @@ public class WsChatService {
       } finally {
         lock.unlock();
       }
-
     }
+    
     // query history
     List<ChatMessage> history = Aop.get(ChatMessgeService.class).getHistoryById(sessionId);
     chatParamVo.setHistory(history);

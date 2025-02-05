@@ -16,4 +16,9 @@ public class WebPageSource {
     this.pageContent = content;
     this.metadata = webPageMetadata;
   }
+
+  public WebPageSource(String title, String url) {
+    WebPageMetadata webPageMetadata = new WebPageMetadata(title, url);
+    this.metadata = webPageMetadata;
+  }
 }

@@ -2,6 +2,7 @@ package com.litongjava.perplexica.vo;
 
 import java.util.List;
 
+import com.litongjava.model.web.WebPageContent;
 import com.litongjava.openai.chat.ChatMessage;
 
 import lombok.AllArgsConstructor;
@@ -17,4 +18,5 @@ public class ChatParamVo {
   private List<ChatMessage> history;
   private String from;
   private long answerMessageId;
+  private List<WebPageContent> sources;
 }

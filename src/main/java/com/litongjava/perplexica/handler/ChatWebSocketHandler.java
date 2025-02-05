@@ -11,6 +11,7 @@ import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.http.common.HttpRequest;
 import com.litongjava.tio.http.common.HttpResponse;
+import com.litongjava.tio.http.common.RequestHeaderKey;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.json.FastJson2Utils;
 import com.litongjava.tio.utils.json.JsonUtils;
@@ -36,6 +37,7 @@ public class ChatWebSocketHandler implements IWebSocketHandler {
    */
   public void onAfterHandshaked(HttpRequest httpRequest, HttpResponse httpResponse, ChannelContext channelContext) throws Exception {
     String origin = httpRequest.getOrigin();
+    String host = httpRequest.getHost();
     String cesId = null;
     String from = null;
     // Google Custom Search JSON API ID
@@ -60,6 +62,8 @@ public class ChatWebSocketHandler implements IWebSocketHandler {
     }
     channelContext.setAttribute("CSE_ID", cesId);
     channelContext.setAttribute("FROM", from);
+    channelContext.setAttribute(RequestHeaderKey.Origin, origin);
+    channelContext.setAttribute(RequestHeaderKey.Host, host);
 
     log.info("open:{},{},{}", channelContext.getClientIpAndPort(), from, cesId);
     String json = JsonUtils.toJson(new ChatSignalVo("signal", "open"));
