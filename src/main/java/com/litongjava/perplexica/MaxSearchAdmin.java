@@ -1,14 +1,13 @@
 package com.litongjava.perplexica;
 
 import com.litongjava.annotation.AComponentScan;
-import com.litongjava.hotswap.watcher.HotSwapResolver;
 import com.litongjava.tio.boot.TioApplication;
 
 @AComponentScan
 public class MaxSearchAdmin {
   public static void main(String[] args) {
     long start = System.currentTimeMillis();
-    HotSwapResolver.addSystemClassPrefix("om.litongjava.perplexica.vo.");
+    //HotSwapResolver.addSystemClassPrefix("om.litongjava.perplexica.vo.");
     TioApplication.run(MaxSearchAdmin.class, args);
     //    TioApplication.run(PerplexicaAdmin.class, args);
     long end = System.currentTimeMillis();

@@ -36,7 +36,7 @@ public class GeminiPredictService {
     String content = reqMessageVo.getMessage().getContent();
 
     Long answerMessageId = chatParamVo.getAnswerMessageId();
-    String inputPrompt = chatParamVo.getInputPrompt();
+    String inputPrompt = chatParamVo.getSystemPrompt();
 
     // log.info("webSearchResponsePrompt:{}", inputPrompt);
 

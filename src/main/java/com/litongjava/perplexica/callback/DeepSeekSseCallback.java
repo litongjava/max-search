@@ -86,14 +86,7 @@ public class DeepSeekSseCallback implements Callback {
 
       //log.info("completionContent:{}", completionContent);
       if (completionContent != null && !completionContent.toString().isEmpty()) {
-        //        TableResult<Kv> tr = Aop.get(LlmChatHistoryService.class).saveAssistant(answerId, chatId, completionContent.toString());
-        //        if (tr.getCode() != 1) {
-        //          log.error("Failed to save assistant answer: {}", tr);
-        //        } else {
-        //          Kv kv = Kv.by("answer_id", answerId);
-        //          SsePacket packet = new SsePacket(AiChatEventName.message_id, JsonUtils.toJson(kv));
-        //          Tio.bSend(channelContext, packet);
-        //        }
+        //函数调用处理
       }
     }
     ChatWsStreamCallCan.remove(sessionId + "");

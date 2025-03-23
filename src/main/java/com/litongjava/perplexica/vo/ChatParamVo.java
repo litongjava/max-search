@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ChatParamVo {
   private String rewrited;
-  private String inputPrompt;
+  private String systemPrompt;
   private List<ChatMessage> history;
   private String from;
   private long answerMessageId;

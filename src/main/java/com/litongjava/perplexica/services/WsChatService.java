@@ -20,8 +20,8 @@ import com.litongjava.openai.chat.OpenAiChatRequestVo;
 import com.litongjava.openai.client.OpenAiClient;
 import com.litongjava.openai.constants.PerplexityConstants;
 import com.litongjava.openai.constants.PerplexityModels;
-import com.litongjava.perplexica.callback.SearchGeminiSseCallback;
 import com.litongjava.perplexica.callback.PerplexiticySeeCallback;
+import com.litongjava.perplexica.callback.SearchGeminiSseCallback;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
 import com.litongjava.perplexica.consts.FocusMode;
 import com.litongjava.perplexica.consts.SearchTableNames;
@@ -112,19 +112,21 @@ public class WsChatService {
 
     } else if (FocusMode.translator.equals(focusMode)) {
       String inputPrompt = Aop.get(TranslatorPromptService.class).genInputPrompt(channelContext, content, copilotEnabled, messageQuestionId, messageQuestionId, from);
-      chatParamVo.setInputPrompt(inputPrompt);
+      chatParamVo.setSystemPrompt(inputPrompt);
       call = geminiPredictService.predict(channelContext, reqMessageVo, chatParamVo);
 
     } else if (FocusMode.deepSeek.equals(focusMode)) {
-      Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, null);
+      Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, chatParamVo);
 
     } else if (FocusMode.mathAssistant.equals(focusMode)) {
       String inputPrompt = PromptEngine.renderToString("math_assistant_prompt.txt");
-      Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, inputPrompt);
+      chatParamVo.setSystemPrompt(inputPrompt);
+      Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, chatParamVo);
 
     } else if (FocusMode.writingAssistant.equals(focusMode)) {
       String inputPrompt = PromptEngine.renderToString("writing_assistant_prompt.txt");
-      Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, sessionId, messageQuestionId, answerMessageId, content, inputPrompt);
+      chatParamVo.setSystemPrompt(inputPrompt);
+      Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, chatParamVo);
     } else {
       // 5. 向前端通知一个空消息，标识搜索结束，开始推理
       //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
