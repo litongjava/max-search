@@ -65,9 +65,7 @@ public class SearxngSearchVectorService {
       }
 
       // 4. 使用 PostgreSQL 计算相似度
-      // 此处采用 pgvector 操作符 <#>，它返回两个向量之间的距离
-      // 如果需要得到相似度而非距离，可根据业务定义转换公式，例如：similarity = 1 / (1 + distance)
-      String simSql = "SELECT 1 / (1 + (? <#> ?)) AS similarity";
+      String simSql = "SELECT 1-(? <=> ?) AS similarity";
       Double similarity = Db.queryDouble(simSql, questionVector, descVector);
       wpc.setSimilarity(similarity);
     }

@@ -14,7 +14,7 @@ public enum PlaywrightBrowser {
   static {
     // 初始化上下文池，假设池大小为10，可根据需要调整
     if (EnvUtils.isDev()) {
-      contextPool = new BrowserContextPool(2);
+      contextPool = new BrowserContextPool(1);
     } else {
       contextPool = new BrowserContextPool(Runtime.getRuntime().availableProcessors() * 2);
     }

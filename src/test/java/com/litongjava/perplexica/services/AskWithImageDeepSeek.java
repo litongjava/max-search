@@ -59,7 +59,7 @@ public class AskWithImageDeepSeek {
     //DEEPSEEK_VL2 working but not well
     chatRequestVo.setModel(SiliconFlowModels.DEEPSEEK_VL2);
     //better for ocr
-    chatRequestVo.setMax_tokens(1024).setTemperature(0.7f).setTop_p(0.7f).setTop_k(50).setFrequency_penalty(0);
+    chatRequestVo.setMax_tokens(1024).setTemperature(0.7f).setTop_p(0.7f).setFrequency_penalty(0f);
 
     chatRequestVo.setMessages(messages);
     String json = JsonUtils.toSkipNullJson(chatRequestVo);

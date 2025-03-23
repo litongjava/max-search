@@ -14,7 +14,7 @@ public class PlaywrightConfig {
 
   @Initialization
   public void config() {
-    if(EnvUtils.getBoolean("playwright.enable",false)) {
+    if (EnvUtils.getBoolean("playwright.enable", true)) {
       // 启动
       log.info("start init playwright");
       PlaywrightBrowser.init();

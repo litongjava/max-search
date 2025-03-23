@@ -51,7 +51,7 @@ import okhttp3.Callback;
 public class WsChatService {
   private static final Striped<Lock> sessionLocks = Striped.lock(64);
   GeminiPredictService geminiPredictService = Aop.get(GeminiPredictService.class);
-  private AiSerchService aiSerchService = Aop.get(AiSerchService.class);
+  private AiSearchService aiSerchService = Aop.get(AiSearchService.class);
 
   /**
    * 使用搜索模型处理消息

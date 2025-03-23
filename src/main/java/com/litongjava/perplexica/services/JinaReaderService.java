@@ -23,6 +23,19 @@ public class JinaReaderService {
   //使用Guava的Striped锁，设置256个锁段
   private static final Striped<Lock> stripedLocks = Striped.lock(256);
 
+  public List<WebPageContent> spider(List<WebPageContent> pages) {
+    for (int i = 0; i < pages.size(); i++) {
+      String link = pages.get(i).getUrl();
+      try {
+        String result = getPageContent(link);
+        pages.get(i).setContent(result);
+      } catch (Exception e) {
+        log.error("Error retrieving task result: {}", e.getMessage(), e);
+      }
+    }
+    return pages;
+  }
+
   public List<WebPageContent> spiderAsync(List<WebPageContent> pages) {
     List<Future<String>> futures = new ArrayList<>();
 

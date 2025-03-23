@@ -8,9 +8,8 @@ import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.model.web.WebPageContent;
 import com.litongjava.perplexica.config.AdminAppConfig;
 import com.litongjava.tio.boot.testing.TioBootTest;
-import com.litongjava.tio.utils.json.JsonUtils;
 
-public class SearxngSearchVectorServiceTest {
+public class SearxngSearchVectorMultiThreadServiceTest {
 
   @Test
   public void computeSimilarity() {
@@ -19,12 +18,11 @@ public class SearxngSearchVectorServiceTest {
     //String quesiton = "first day sjsu spring 2025";
     String question = "《哪吒之魔童闹海》 总票房数量是多少";
     long start = System.currentTimeMillis();
-    List<WebPageContent> computeSimilarity = Aop.get(SearxngSearchVectorService.class).computeSimilarity(question);
-    //3415(ms)
-    //3306(ms)
+    
+    //1266 毫秒
+    List<WebPageContent> computeSimilarity = Aop.get(SearxngSearchVectorMultiThreadService.class).computeSimilarity(question);
     long end = System.currentTimeMillis();
-    System.out.println((end - start) + "(ms)");
-    //System.out.println(JsonUtils.toJson(computeSimilarity));
-
+    System.out.println((end-start)+"(ms)");
+    
   }
 }

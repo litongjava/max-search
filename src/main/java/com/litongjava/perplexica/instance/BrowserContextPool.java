@@ -20,7 +20,7 @@ public class BrowserContextPool {
     this.playwrightPool = new LinkedBlockingQueue<>(poolSize);
     this.brwoserPool = new LinkedBlockingQueue<>(poolSize);
     this.browserContextPool = new LinkedBlockingQueue<>(poolSize);
-    LaunchOptions launchOptions = new BrowserType.LaunchOptions().setHeadless(true);
+    LaunchOptions launchOptions = new BrowserType.LaunchOptions().setHeadless(false);
     // 预先创建上下文并放入池中
     for (int i = 0; i < poolSize; i++) {
       Playwright playwright = Playwright.create();
@@ -30,7 +30,7 @@ public class BrowserContextPool {
       brwoserPool.offer(brwoser);
 
       BrowserContext browserContext = brwoser.newContext();
-      //browserContext.newPage();
+      browserContext.newPage();
       browserContextPool.offer(browserContext);
     }
   }

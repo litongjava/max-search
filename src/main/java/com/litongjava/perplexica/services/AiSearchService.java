@@ -12,6 +12,7 @@ import com.litongjava.db.activerecord.Db;
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.kit.PgObjectUtils;
 import com.litongjava.model.web.WebPageContent;
+import com.litongjava.perplexica.consts.OptimizationMode;
 import com.litongjava.perplexica.vo.ChatParamVo;
 import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
@@ -28,11 +29,12 @@ import com.litongjava.tio.websocket.common.WebSocketResponse;
 
 import okhttp3.Call;
 
-public class AiSerchService {
+public class AiSearchService {
   GeminiPredictService geminiPredictService = Aop.get(GeminiPredictService.class);
   public boolean spped = true;
 
   public Call search(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, ChatParamVo chatParamVo) {
+    String optimizationMode = reqMessageVo.getOptimizationMode();
     Boolean copilotEnabled = reqMessageVo.getCopilotEnabled();
     String content = reqMessageVo.getMessage().getContent();
     Long questionMessageId = reqMessageVo.getMessage().getMessageId();
@@ -63,7 +65,12 @@ public class AiSerchService {
         webPageContents.add(webpageContent);
       }
 
-      if (!spped) {
+      if (OptimizationMode.balanced.equals(optimizationMode)) {
+        List<WebPageContent> rankedWebPageContents = Aop.get(VectorRankerService.class).filter(webPageContents, quesiton, 1);
+        rankedWebPageContents = Aop.get(JinaReaderService.class).spider(webPageContents);
+        webPageContents.set(0, rankedWebPageContents.get(0));
+
+      } else if (OptimizationMode.quality.equals(optimizationMode)) {
         //String renderToString = PromptEngine.renderToString("web_answer_prompt.txt");
         webPageContents = Aop.get(AiRankerService.class).filter(webPageContents, quesiton, 6);
         //pages = Aop.get(PlaywrightService.class).spiderAsync(pages);

@@ -11,7 +11,9 @@ public class JinaReaderClientTest {
   public void test() {
     EnvUtils.load();
     //String key = EnvUtils.getStr("JINA_API_KEY");
-    String result = JinaReaderClient.read("https://www.tio-boot.com/zh/01_tio-boot%20%E7%AE%80%E4%BB%8B/02.html");
-    System.out.println(result);
+    long start = System.currentTimeMillis();
+    JinaReaderClient.read("https://www.tio-boot.com/zh/01_tio-boot%20%E7%AE%80%E4%BB%8B/02.html");
+    long end = System.currentTimeMillis();
+    System.out.println((end - start) + "(ms)");
   }
 }
