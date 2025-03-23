@@ -32,7 +32,7 @@ public class JavaDbGenerator {
     // generator.addExcludedTable("t_db_connect_info"); // 添加不需要生成的表名
     generator.setGenerateDaoInModel(true); // 在 Model 中生成 dao 对象
     generator.setGenerateDataDictionary(false); // 不生成数据字典
-    generator.addWhitelist("perplexica_chat_session", "perplexica_chat_message");
+    generator.addWhitelist("max_search_chat_session", "max_search_chat_message");
 
     // 开始生成
     generator.generate();

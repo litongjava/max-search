@@ -8,7 +8,7 @@ import com.litongjava.openai.chat.ChatResponseDelta;
 import com.litongjava.openai.chat.Choice;
 import com.litongjava.openai.chat.OpenAiChatResponseVo;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
-import com.litongjava.perplexica.model.PerplexicaChatMessage;
+import com.litongjava.perplexica.model.MaxSearchChatMessage;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
@@ -71,7 +71,7 @@ public class DeepSeekSseCallback implements Callback {
       }
       StringBuffer completionContent = onResponseSuccess(channelContext, answerMessageId, start, responseBody);
    // save user mesasge
-      new PerplexicaChatMessage().setId(answerMessageId).setChatId(sessionId)
+      new MaxSearchChatMessage().setId(answerMessageId).setChatId(sessionId)
           //
           .setRole("assistant").setContent(completionContent.toString())
           //

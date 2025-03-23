@@ -13,7 +13,7 @@ public class SourcesController {
 
   @Get("/{id}")
   public String source(Long id) {
-    String sql = "select sources from perplexica_chat_message where id=?";
+    String sql = "select sources from max_search_chat_message where id=?";
     String queryStr = Db.queryStr(sql, id);
     List<WebPageContent> webPages = JSON.parseArray(queryStr, WebPageContent.class);
     StringBuffer markdown = new StringBuffer();

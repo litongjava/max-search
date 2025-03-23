@@ -12,7 +12,7 @@ import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.gemini.GeminiSystemInstructionVo;
 import com.litongjava.gemini.GoogleGeminiModels;
 import com.litongjava.openai.chat.ChatMessage;
-import com.litongjava.perplexica.callback.GeminiSseCallback;
+import com.litongjava.perplexica.callback.SearchGeminiSseCallback;
 import com.litongjava.perplexica.consts.FocusMode;
 import com.litongjava.perplexica.vo.ChatParamVo;
 import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
@@ -95,7 +95,7 @@ public class GeminiPredictService {
     // 6. 流式/一次性获取结果
     Call call = null;
     if (channelContext != null) {
-      Callback callback = new GeminiSseCallback(channelContext, sessionId, quesitonMessageId, answerMessageId, start);
+      Callback callback = new SearchGeminiSseCallback(channelContext, sessionId, quesitonMessageId, answerMessageId, start);
       call = GeminiClient.stream(GoogleGeminiModels.GEMINI_2_0_FLASH_EXP, reqVo, callback);
     } else {
       GeminiChatResponseVo vo = GeminiClient.generate(GoogleGeminiModels.GEMINI_2_0_FLASH_EXP, reqVo);

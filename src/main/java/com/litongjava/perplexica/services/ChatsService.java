@@ -2,18 +2,18 @@ package com.litongjava.perplexica.services;
 
 import java.util.List;
 
-import com.litongjava.perplexica.model.PerplexicaChatSession;
+import com.litongjava.perplexica.model.MaxSearchChatSession;
 
 public class ChatsService {
 
-  public List<PerplexicaChatSession> listChats(Long userId) {
-    String sql = "select id,title,focus_mode,created_at,files from perplexica_chat_session where user_id=? order by created_at desc";
-    List<PerplexicaChatSession> chats = PerplexicaChatSession.dao.find(sql, userId);
+  public List<MaxSearchChatSession> listChats(Long userId) {
+    String sql = "select id,title,focus_mode,created_at,files from max_search_chat_session where user_id=? order by created_at desc";
+    List<MaxSearchChatSession> chats = MaxSearchChatSession.dao.find(sql, userId);
     return chats;
   }
 
-  public PerplexicaChatSession getById(Long id) {
-    String sql = "select id,title,focus_mode,created_at,files from perplexica_chat_session where id=?";
-    return PerplexicaChatSession.dao.findFirst(sql, id);
+  public MaxSearchChatSession getById(Long id) {
+    String sql = "select id,title,focus_mode,created_at,files from max_search_chat_session where id=?";
+    return MaxSearchChatSession.dao.findFirst(sql, id);
   }
 }

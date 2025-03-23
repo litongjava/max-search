@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.jfinal.aop.Aop;
+import com.litongjava.maxkb.service.spider.PlaywrightService;
 import com.litongjava.perplexica.config.SearchPlaywrightConfig;
 import com.litongjava.tio.boot.testing.TioBootTest;
 import com.litongjava.tio.utils.environment.EnvUtils;

@@ -9,7 +9,7 @@ import com.litongjava.gemini.GeminiChatResponseVo;
 import com.litongjava.gemini.GeminiContentResponseVo;
 import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
-import com.litongjava.perplexica.model.PerplexicaChatMessage;
+import com.litongjava.perplexica.model.MaxSearchChatMessage;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
@@ -25,14 +25,14 @@ import okhttp3.ResponseBody;
 import okio.BufferedSource;
 
 @Slf4j
-public class GeminiSseCallback implements Callback {
+public class SearchGeminiSseCallback implements Callback {
   private ChannelContext channelContext;
   private Long chatId;
   private Long quesitonMessageId;
   private Long answerMessageId;
   private long start;
 
-  public GeminiSseCallback(ChannelContext channelContext, Long sessionId, Long messageId, Long answerMessageId, long start) {
+  public SearchGeminiSseCallback(ChannelContext channelContext, Long sessionId, Long messageId, Long answerMessageId, long start) {
     this.channelContext = channelContext;
     this.chatId = sessionId;
     this.quesitonMessageId = messageId;
@@ -71,7 +71,7 @@ public class GeminiSseCallback implements Callback {
       }
       StringBuffer completionContent = onResponse(channelContext, answerMessageId, start, responseBody);
       // save user mesasge
-      new PerplexicaChatMessage().setId(answerMessageId).setChatId(chatId)
+      new MaxSearchChatMessage().setId(answerMessageId).setChatId(chatId)
           //
           .setRole("assistant").setContent(completionContent.toString())
           //

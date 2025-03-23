@@ -10,7 +10,7 @@ import com.jfinal.kit.Kv;
 import com.litongjava.annotation.Get;
 import com.litongjava.annotation.RequestPath;
 import com.litongjava.jfinal.aop.Aop;
-import com.litongjava.perplexica.model.PerplexicaChatMessage;
+import com.litongjava.perplexica.model.MaxSearchChatMessage;
 import com.litongjava.perplexica.services.ChatMessgeService;
 import com.litongjava.perplexica.services.ChatsService;
 import com.litongjava.perplexica.vo.WebPageSource;
@@ -30,9 +30,9 @@ public class ApiChatsController {
   @Get("/{id}")
   public Kv get(Long id) {
     Kv kv = Kv.by("chat", chatsService.getById(id));
-    List<PerplexicaChatMessage> listMessage = chatMessgeService.listMessage(id);
+    List<MaxSearchChatMessage> listMessage = chatMessgeService.listMessage(id);
     List<Map<String, Object>> newMessages = new ArrayList<>();
-    for (PerplexicaChatMessage perplexicaChatMessage : listMessage) {
+    for (MaxSearchChatMessage perplexicaChatMessage : listMessage) {
       Map<String, Object> map = perplexicaChatMessage.toMap();
       String sourcesStr = perplexicaChatMessage.getSources();
       if (sourcesStr != null) {

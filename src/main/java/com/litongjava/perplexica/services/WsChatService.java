@@ -20,13 +20,13 @@ import com.litongjava.openai.chat.OpenAiChatRequestVo;
 import com.litongjava.openai.client.OpenAiClient;
 import com.litongjava.openai.constants.PerplexityConstants;
 import com.litongjava.openai.constants.PerplexityModels;
-import com.litongjava.perplexica.callback.GeminiSseCallback;
+import com.litongjava.perplexica.callback.SearchGeminiSseCallback;
 import com.litongjava.perplexica.callback.PerplexiticySeeCallback;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
 import com.litongjava.perplexica.consts.FocusMode;
-import com.litongjava.perplexica.consts.PerTableNames;
-import com.litongjava.perplexica.model.PerplexicaChatMessage;
-import com.litongjava.perplexica.model.PerplexicaChatSession;
+import com.litongjava.perplexica.consts.SearchTableNames;
+import com.litongjava.perplexica.model.MaxSearchChatMessage;
+import com.litongjava.perplexica.model.MaxSearchChatSession;
 import com.litongjava.perplexica.vo.ChatParamVo;
 import com.litongjava.perplexica.vo.ChatReqMessage;
 import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
@@ -66,13 +66,13 @@ public class WsChatService {
     ChatParamVo chatParamVo = new ChatParamVo();
     // create chat or save message
     String focusMode = reqMessageVo.getFocusMode();
-    if (!Db.exists(PerTableNames.perplexica_chat_session, "id", sessionId)) {
+    if (!Db.exists(SearchTableNames.max_search_chat_session, "id", sessionId)) {
       Lock lock = sessionLocks.get(sessionId);
       lock.lock();
       try {
         TioThreadUtils.execute(() -> {
           String summary = Aop.get(SummaryQuestionService.class).summary(content);
-          new PerplexicaChatSession().setId(sessionId).setUserId(userId).setTitle(summary).setFocusMode(focusMode).save();
+          new MaxSearchChatSession().setId(sessionId).setUserId(userId).setTitle(summary).setFocusMode(focusMode).save();
         });
       } finally {
         lock.unlock();
@@ -93,7 +93,7 @@ public class WsChatService {
     }
 
     // save user mesasge
-    new PerplexicaChatMessage().setId(messageQuestionId).setChatId(sessionId)
+    new MaxSearchChatMessage().setId(messageQuestionId).setChatId(sessionId)
         //
         .setRole("user").setContent(content).save();
 
@@ -230,7 +230,7 @@ public class WsChatService {
     chatRequestVo.setStream(true);
     long start = System.currentTimeMillis();
 
-    Callback callback = new GeminiSseCallback(channelContext, sessionId, messageId, answerMessageId, start);
+    Callback callback = new SearchGeminiSseCallback(channelContext, sessionId, messageId, answerMessageId, start);
     Call call = Aop.get(GeminiService.class).stream(chatRequestVo, callback);
     return call;
   }

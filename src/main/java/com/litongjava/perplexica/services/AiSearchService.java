@@ -81,7 +81,7 @@ public class AiSearchService {
       chatParamVo.setSources(webPageContents);
       //update sources
       PGobject pgObject = PgObjectUtils.json(webPageContents);
-      Db.updateBySql("update perplexica_chat_message set sources=? where id=?", pgObject, questionMessageId);
+      Db.updateBySql("update max_search_chat_message set sources=? where id=?", pgObject, questionMessageId);
 
       if (channelContext != null) {
         List<WebPageSource> sources = new ArrayList<>();

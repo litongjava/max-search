@@ -16,8 +16,8 @@ import com.litongjava.db.activerecord.ActiveRecordPlugin;
 public class _MappingKit {
 	
 	public static void mapping(ActiveRecordPlugin arp) {
-		arp.addMapping("perplexica_chat_message", "id", PerplexicaChatMessage.class);
-		arp.addMapping("perplexica_chat_session", "id", PerplexicaChatSession.class);
+		arp.addMapping("max_search_chat_message", "id", MaxSearchChatMessage.class);
+		arp.addMapping("max_search_chat_session", "id", MaxSearchChatSession.class);
 	}
 }
 

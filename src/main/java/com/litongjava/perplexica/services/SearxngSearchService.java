@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.litongjava.jfinal.aop.Aop;
+import com.litongjava.maxkb.service.spider.PlaywrightService;
 import com.litongjava.model.web.WebPageContent;
 import com.litongjava.searxng.SearxngResult;
 import com.litongjava.searxng.SearxngSearchClient;
