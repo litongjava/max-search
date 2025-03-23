@@ -15,8 +15,8 @@
     <fastjson2.version>2.0.52</fastjson2.version>
 
     <!-- 应用程序属性 -->
-    <final.name>web-hello</final.name>
-    <main.class>com.litongjava.perplexica.PerplexicaAdmin</main.class>
+    <final.name>max-search</final.name>
+    <main.class>com.litongjava.perplexica.MaxSearchAdmin</main.class>
   </properties>
 
   <dependencies>
