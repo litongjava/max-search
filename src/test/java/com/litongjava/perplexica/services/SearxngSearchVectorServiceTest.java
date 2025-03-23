@@ -8,7 +8,6 @@ import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.model.web.WebPageContent;
 import com.litongjava.perplexica.config.AdminAppConfig;
 import com.litongjava.tio.boot.testing.TioBootTest;
-import com.litongjava.tio.utils.json.JsonUtils;
 
 public class SearxngSearchVectorServiceTest {
 

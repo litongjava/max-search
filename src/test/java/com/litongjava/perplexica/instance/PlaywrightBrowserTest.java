@@ -2,13 +2,14 @@ package com.litongjava.perplexica.instance;
 
 import org.junit.Test;
 
+import com.litongjava.maxkb.playwright.PlaywrightBrowser;
 import com.litongjava.tio.utils.thread.TioThreadUtils;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.BrowserType;
+import com.microsoft.playwright.BrowserType.LaunchOptions;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
-import com.microsoft.playwright.BrowserType.LaunchOptions;
 
 import lombok.extern.slf4j.Slf4j;
 

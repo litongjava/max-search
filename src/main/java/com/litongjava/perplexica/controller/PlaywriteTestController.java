@@ -1,8 +1,8 @@
 package com.litongjava.perplexica.controller;
 
 import com.litongjava.annotation.RequestPath;
+import com.litongjava.maxkb.playwright.PlaywrightBrowser;
 import com.litongjava.model.body.RespBodyVo;
-import com.litongjava.perplexica.instance.PlaywrightBrowser;
 import com.litongjava.tio.utils.thread.TioThreadUtils;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;

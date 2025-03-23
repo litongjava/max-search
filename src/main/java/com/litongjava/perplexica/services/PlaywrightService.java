@@ -9,14 +9,15 @@ import java.util.concurrent.locks.Lock;
 import com.google.common.util.concurrent.Striped;
 import com.litongjava.db.activerecord.Db;
 import com.litongjava.db.activerecord.Row;
+import com.litongjava.maxkb.playwright.PlaywrightBrowser;
 import com.litongjava.model.web.WebPageContent;
-import com.litongjava.perplexica.instance.PlaywrightBrowser;
 import com.litongjava.tio.utils.hutool.FilenameUtils;
 import com.litongjava.tio.utils.hutool.StrUtil;
 import com.litongjava.tio.utils.snowflake.SnowflakeIdUtils;
 import com.litongjava.tio.utils.thread.TioThreadUtils;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import com.litongjava.perplexica.instance.PlaywrightBrowser;
+import com.litongjava.maxkb.playwright.PlaywrightBrowser;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
 import com.litongjava.perplexica.vo.CitationsVo;
 import com.litongjava.tio.core.ChannelContext;
