@@ -49,21 +49,7 @@ public class AiSearchService {
         quesiton = content;
       }
 
-      // 1. 进行搜索（可选：SearxNG
-      SearxngSearchParam searxngSearchParam = new SearxngSearchParam();
-      searxngSearchParam.setFormat("json");
-      searxngSearchParam.setQ(quesiton);
-
-      SearxngSearchResponse searchResponse = SearxngSearchClient.search(searxngSearchParam);
-      List<SearxngResult> results = searchResponse.getResults();
-      List<WebPageContent> webPageContents = new ArrayList<>();
-      for (SearxngResult searxngResult : results) {
-        String title = searxngResult.getTitle();
-        String url = searxngResult.getUrl();
-        WebPageContent webpageContent = new WebPageContent(title, url);
-        webpageContent.setContent(searxngResult.getContent());
-        webPageContents.add(webpageContent);
-      }
+      List<WebPageContent> webPageContents = search(quesiton);
 
       if (OptimizationMode.balanced.equals(optimizationMode)) {
         List<WebPageContent> rankedWebPageContents = Aop.get(VectorRankerService.class).filter(webPageContents, quesiton, 1);
@@ -118,5 +104,45 @@ public class AiSearchService {
     }
     chatParamVo.setInputPrompt(inputPrompt);
     return geminiPredictService.predict(channelContext, reqMessageVo, chatParamVo);
+  }
+
+  private List<WebPageContent> search(String quesiton) {
+    // 1. 进行搜索（可选：SearxNG)
+    return useTavilySearch(quesiton);
+  }
+
+  private List<WebPageContent> useTavilySearch(String quesiton) {
+    SearxngSearchResponse searchResponse = SearxngSearchClient.search(quesiton);
+    List<SearxngResult> results = searchResponse.getResults();
+    List<WebPageContent> webPageContents = new ArrayList<>();
+
+    for (SearxngResult searxngResult : results) {
+      String title = searxngResult.getTitle();
+      String url = searxngResult.getUrl();
+
+      WebPageContent webpageContent = new WebPageContent(title, url);
+      webpageContent.setContent(searxngResult.getContent());
+
+      webPageContents.add(webpageContent);
+    }
+    return webPageContents;
+  }
+
+  public List<WebPageContent> useSearchNg(String quesiton) {
+    SearxngSearchParam searxngSearchParam = new SearxngSearchParam();
+    searxngSearchParam.setFormat("json");
+    searxngSearchParam.setQ(quesiton);
+
+    SearxngSearchResponse searchResponse = SearxngSearchClient.search(searxngSearchParam);
+    List<SearxngResult> results = searchResponse.getResults();
+    List<WebPageContent> webPageContents = new ArrayList<>();
+    for (SearxngResult searxngResult : results) {
+      String title = searxngResult.getTitle();
+      String url = searxngResult.getUrl();
+      WebPageContent webpageContent = new WebPageContent(title, url);
+      webpageContent.setContent(searxngResult.getContent());
+      webPageContents.add(webpageContent);
+    }
+    return webPageContents;
   }
 }

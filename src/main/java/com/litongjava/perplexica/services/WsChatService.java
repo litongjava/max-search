@@ -78,13 +78,14 @@ public class WsChatService {
         lock.unlock();
       }
     }
-    
+
     // query history
     List<ChatMessage> history = Aop.get(ChatMessgeService.class).getHistoryById(sessionId);
     chatParamVo.setHistory(history);
 
     if (content.length() > 30 || history.size() > 0) {
       String rewrited = Aop.get(RewriteQuestionService.class).rewrite(content, history);
+      log.info("rewrite to:{}", rewrited);
       chatParamVo.setRewrited(rewrited);
       if (channelContext != null) {
         Kv end = Kv.by("type", "rewrited").set("content", rewrited);

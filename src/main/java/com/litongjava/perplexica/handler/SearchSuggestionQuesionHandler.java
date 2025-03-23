@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.jfinal.kit.Kv;
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.openai.chat.ChatMessage;
 import com.litongjava.perplexica.services.SearchSuggestionQuesionService;
@@ -14,6 +13,7 @@ import com.litongjava.perplexica.vo.WebPageSource;
 import com.litongjava.tio.boot.http.TioRequestContext;
 import com.litongjava.tio.http.common.HttpRequest;
 import com.litongjava.tio.http.common.HttpResponse;
+import com.litongjava.tio.http.common.MimeType;
 import com.litongjava.tio.http.server.util.Resps;
 import com.litongjava.tio.utils.hutool.StrUtil;
 import com.litongjava.tio.utils.json.FastJson2Utils;
@@ -53,12 +53,7 @@ public class SearchSuggestionQuesionHandler {
 
     String generated = Aop.get(SearchSuggestionQuesionService.class).generate(chatMessages);
     if (generated != null) {
-      String[] split = generated.split("\n");
-      Kv by = Kv.by("suggestions", split);
-      response.setJson(by);
-    } else {
-      Kv by = Kv.by("suggestions", new String[] {});
-      response.setJson(by);
+      response.setString(generated, null, MimeType.TEXT_PLAIN_JSON.toString());
     }
     return response;
   }
