@@ -4,8 +4,10 @@ import com.litongjava.annotation.AConfiguration;
 import com.litongjava.annotation.Initialization;
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.perplexica.handler.OpenAiV1ProxyHandler;
+import com.litongjava.perplexica.handler.SearchSuggestionQuesionHandler;
 import com.litongjava.perplexica.handler.SearxngSearchHandler;
-import com.litongjava.tio.boot.admin.config.*;
+import com.litongjava.tio.boot.admin.config.TioAdminControllerConfiguration;
+import com.litongjava.tio.boot.admin.config.TioAdminDbConfiguration;
 import com.litongjava.tio.boot.admin.handler.SystemFileTencentCosHandler;
 import com.litongjava.tio.boot.server.TioBootServer;
 import com.litongjava.tio.http.server.router.HttpRequestRouter;
@@ -17,11 +19,11 @@ public class AdminAppConfig {
   public void config() {
     // 配置数据库相关
     new TioAdminDbConfiguration().config();
-//    new TioAdminRedisDbConfiguration().config();
-//    new TioAdminMongoDbConfiguration().config();
-//    new TioAdminSaTokenConfiguration().config();
-//    new TioAdminInterceptorConfiguration().config();
-//    new TioAdminHandlerConfiguration().config();
+    //    new TioAdminRedisDbConfiguration().config();
+    //    new TioAdminMongoDbConfiguration().config();
+    //    new TioAdminSaTokenConfiguration().config();
+    //    new TioAdminInterceptorConfiguration().config();
+    //    new TioAdminHandlerConfiguration().config();
 
     // 获取 HTTP 请求路由器
     HttpRequestRouter r = TioBootServer.me().getRequestRouter();
@@ -43,6 +45,8 @@ public class AdminAppConfig {
       SearxngSearchHandler searxngSearchHandler = new SearxngSearchHandler();
       r.add("/search", searxngSearchHandler::search);
       r.add("/api/v1/search", searxngSearchHandler::search);
+      SearchSuggestionQuesionHandler searchSuggestionQuesionHandler = new SearchSuggestionQuesionHandler();
+      r.add("/api/suggestions", searchSuggestionQuesionHandler::index);
     }
 
     // 配置控制器
