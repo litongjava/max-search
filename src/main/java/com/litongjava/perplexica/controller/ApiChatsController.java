@@ -18,8 +18,8 @@ import com.litongjava.tio.utils.json.FastJson2Utils;
 
 @RequestPath("/api/chats")
 public class ApiChatsController {
-  ChatsService chatsService = Aop.get(ChatsService.class);
-  ChatMessgeService chatMessgeService = Aop.get(ChatMessgeService.class);
+  private ChatsService chatsService = Aop.get(ChatsService.class);
+  private ChatMessgeService chatMessgeService = Aop.get(ChatMessgeService.class);
 
   @Get
   public Kv index(Long userId) {

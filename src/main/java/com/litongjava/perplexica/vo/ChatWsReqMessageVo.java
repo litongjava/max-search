@@ -18,4 +18,5 @@ public class ChatWsReqMessageVo {
   private Boolean copilotEnabled;
   private String optimizationMode;
   private List<List<String>> history;
+  private boolean sse;
 }

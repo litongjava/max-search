@@ -31,12 +31,17 @@ public class ChatWsRespVo<T> {
   public static <T> ChatWsRespVo<T> keepAlive(Long answerMessageId) {
     return new ChatWsRespVo<T>().setType("keep-alive").setMessageId(answerMessageId);
   }
-  
-  public static <T> ChatWsRespVo<T> message(Long answerMessageId,T data) {
+
+  public static <T> ChatWsRespVo<T> message(Long answerMessageId, T data) {
     return new ChatWsRespVo<T>().setType("message").setMessageId(answerMessageId).setData(data);
+  }
+
+  public static <T> ChatWsRespVo<T> reasoning(Long answerMessageId, T data) {
+    return new ChatWsRespVo<T>().setType("reasoning").setMessageId(answerMessageId).setData(data);
   }
 
   public static ChatWsRespVo<Void> messageEnd(Long answerMessageId) {
     return new ChatWsRespVo<Void>().setType("messageEnd").setMessageId(answerMessageId);
   }
+
 }

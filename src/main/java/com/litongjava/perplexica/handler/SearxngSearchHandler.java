@@ -9,6 +9,7 @@ import com.litongjava.searxng.SearxngSearchParam;
 import com.litongjava.tio.boot.http.TioRequestContext;
 import com.litongjava.tio.http.common.HttpRequest;
 import com.litongjava.tio.http.common.HttpResponse;
+import com.litongjava.tio.http.server.util.CORSUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 public class SearxngSearchHandler {
 
   public HttpResponse search(HttpRequest request) {
+    HttpResponse response = TioRequestContext.getResponse();
+    CORSUtils.enableCORS(response);
     log.info("request line:{}", request.requestLine.toString());
     // 从请求中获取各参数
     String format = "json";
@@ -51,6 +54,6 @@ public class SearxngSearchHandler {
 
     // 使用封装后的参数调用服务
     List<WebPageContent> pages = Aop.get(SearxngSearchService.class).search(param, fetch, limit);
-    return TioRequestContext.getResponse().setJson(pages);
+    return response.setJson(pages);
   }
 }

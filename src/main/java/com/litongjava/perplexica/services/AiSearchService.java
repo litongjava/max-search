@@ -21,13 +21,15 @@ import com.litongjava.template.PromptEngine;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.http.common.RequestHeaderKey;
+import com.litongjava.tio.http.common.sse.SsePacket;
+import com.litongjava.tio.utils.json.FastJson2Utils;
 import com.litongjava.tio.websocket.common.WebSocketResponse;
 
 import okhttp3.Call;
 
 public class AiSearchService {
-  private GeminiPredictService geminiPredictService = Aop.get(GeminiPredictService.class);
-  private DeepSeekPredictService deepSeekPredictService = Aop.get(DeepSeekPredictService.class);
+  @SuppressWarnings("unused")
+  public PredictService predictService = Aop.get(PredictService.class);
   public boolean spped = true;
 
   /**
@@ -77,26 +79,31 @@ public class AiSearchService {
       PGobject pgObject = PgObjectUtils.json(webPageContents);
       Db.updateBySql("update max_search_chat_message set sources=? where id=?", pgObject, questionMessageId);
 
-      // 通过 WebSocket 返回搜索结果引用信息给客户端
+      List<WebPageSource> sources = new ArrayList<>();
+
+      for (WebPageContent webPageConteont : webPageContents) {
+        sources.add(new WebPageSource(webPageConteont.getTitle(), webPageConteont.getUrl(), webPageConteont.getContent()));
+      }
+
+      String host = channelContext.getString(RequestHeaderKey.Host);
+      if (host == null) {
+        host = "//127.0.0.1";
+      } else {
+        host = "//" + host;
+      }
+      sources.add(new WebPageSource("All Sources", host + "/sources/" + questionMessageId));
+      // 返回 sources 数据给客户端
+      ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
+      chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId);
+
+      // 通过 WebSocket or sse 返回搜索结果引用信息给客户端
       if (channelContext != null) {
-        List<WebPageSource> sources = new ArrayList<>();
-
-        for (WebPageContent webPageConteont : webPageContents) {
-          sources.add(new WebPageSource(webPageConteont.getTitle(), webPageConteont.getUrl(), webPageConteont.getContent()));
-        }
-
-        String host = channelContext.getString(RequestHeaderKey.Host);
-        if (host == null) {
-          host = "//127.0.0.1";
+        byte[] jsonBytes = FastJson2Utils.toJSONBytes(chatRespVo);
+        if (reqMessageVo.isSse()) {
+          Tio.bSend(channelContext, new SsePacket(jsonBytes));
         } else {
-          host = "//" + host;
+          Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
         }
-        sources.add(new WebPageSource("All Sources", host + "/sources/" + questionMessageId));
-        // 返回 sources 数据给客户端
-        ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
-        chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId);
-        WebSocketResponse packet = WebSocketResponse.fromJson(chatRespVo);
-        Tio.bSend(channelContext, packet);
       }
 
       // 拼接所有搜索结果内容，用于生成提示词
@@ -112,6 +119,6 @@ public class AiSearchService {
       inputPrompt = PromptEngine.renderToString("WebSearchResponsePrompt.txt", kv);
     }
     chatParamVo.setSystemPrompt(inputPrompt);
-    return deepSeekPredictService.predict(channelContext, reqMessageVo, chatParamVo);
+    return predictService.predict(channelContext, reqMessageVo, chatParamVo);
   }
 }

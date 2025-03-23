@@ -36,7 +36,7 @@ public class LLmAiWsChatSearchServiceTest {
   public void testSearchAndPredict() {
     EnvUtils.load();
     String content = "Advertising, Area of Specialization in Creative Track, BS (2024-2025) 4 year";
-    Aop.get(WsChatService.class).google(null, null, null, content);
+    Aop.get(WsChatService.class).google(null, null, null, content,false);
   }
 
 }

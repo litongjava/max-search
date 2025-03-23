@@ -9,9 +9,12 @@ import com.litongjava.openai.chat.Choice;
 import com.litongjava.openai.chat.OpenAiChatResponseVo;
 import com.litongjava.perplexica.can.ChatWsStreamCallCan;
 import com.litongjava.perplexica.model.MaxSearchChatMessage;
+import com.litongjava.perplexica.vo.ChatParamVo;
+import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
+import com.litongjava.tio.http.common.sse.SsePacket;
 import com.litongjava.tio.http.server.util.SseEmitter;
 import com.litongjava.tio.utils.json.FastJson2Utils;
 import com.litongjava.tio.websocket.common.WebSocketResponse;
@@ -26,26 +29,36 @@ import okio.BufferedSource;
 @Slf4j
 public class DeepSeekSseCallback implements Callback {
   private ChannelContext channelContext;
+  private ChatWsReqMessageVo reqVo;
+  private ChatParamVo chatParamVo;
+  private long start;
   private Long sessionId;
-  private Long messageId;
-  private Long answerMessageId;
-  private Long start;
+  private long answerMessageId;
 
-  public DeepSeekSseCallback(ChannelContext channelContext, Long sessionId, Long messageId, Long answerMessageId, Long start) {
+  public DeepSeekSseCallback(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, ChatParamVo chatParamVo, long start) {
     this.channelContext = channelContext;
+    this.reqVo = reqMessageVo;
+    this.chatParamVo = chatParamVo;
+    this.start = start;
+    Long sessionId = reqVo.getMessage().getChatId();
     this.sessionId = sessionId;
-    this.messageId = messageId;
-    this.answerMessageId = answerMessageId;
-    this.start=start;
+    this.answerMessageId = chatParamVo.getAnswerMessageId();
   }
 
   @Override
   public void onFailure(Call call, IOException e) {
     ChatWsRespVo<String> error = ChatWsRespVo.error("CHAT_ERROR", e.getMessage());
-    WebSocketResponse packet = WebSocketResponse.fromJson(error);
-    Tio.bSend(channelContext, packet);
-    ChatWsStreamCallCan.remove(sessionId + "");
-    SseEmitter.closeSeeConnection(channelContext);
+    byte[] jsonBytes = FastJson2Utils.toJSONBytes(error);
+    if (reqVo.isSse()) {
+      Tio.bSend(channelContext, new SsePacket(jsonBytes));
+      ChatWsStreamCallCan.remove(sessionId + "");
+      SseEmitter.closeSeeConnection(channelContext);
+
+    } else {
+      WebSocketResponse packet = new WebSocketResponse(jsonBytes);
+      Tio.bSend(channelContext, packet);
+    }
+
   }
 
   @Override
@@ -55,8 +68,12 @@ public class DeepSeekSseCallback implements Callback {
       String message = "Chat model response an unsuccessful message:" + string;
       log.error("message:{}", message);
       ChatWsRespVo<String> data = ChatWsRespVo.error("STREAM_ERROR", message);
-      WebSocketResponse webSocketResponse = WebSocketResponse.fromJson(data);
-      Tio.bSend(channelContext, webSocketResponse);
+      byte[] jsonBytes = FastJson2Utils.toJSONBytes(data);
+      if (reqVo.isSse()) {
+        Tio.bSend(channelContext, new SsePacket(jsonBytes));
+      } else {
+        Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+      }
       return;
     }
 
@@ -65,20 +82,30 @@ public class DeepSeekSseCallback implements Callback {
         String message = "response body is null";
         log.error(message);
         ChatWsRespVo<String> data = ChatWsRespVo.progress(message);
-        WebSocketResponse webSocketResponse = WebSocketResponse.fromJson(data);
-        Tio.bSend(channelContext, webSocketResponse);
+        byte[] jsonBytes = FastJson2Utils.toJSONBytes(data);
+        if (reqVo.isSse()) {
+          Tio.bSend(channelContext, new SsePacket(jsonBytes));
+        } else {
+          Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+        }
+
         return;
       }
       StringBuffer completionContent = onResponseSuccess(channelContext, answerMessageId, start, responseBody);
-   // save user mesasge
+      // save user mesasge
       new MaxSearchChatMessage().setId(answerMessageId).setChatId(sessionId)
           //
           .setRole("assistant").setContent(completionContent.toString())
           //
           .save();
-      
+
       Kv end = Kv.by("type", "messageEnd").set("messageId", answerMessageId);
-      Tio.bSend(channelContext, WebSocketResponse.fromJson(end));
+      byte[] jsonBytes = FastJson2Utils.toJSONBytes(end);
+      if (reqVo.isSse()) {
+        Tio.bSend(channelContext, new SsePacket(jsonBytes));
+      } else {
+        Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+      }
 
       // 关闭连接
       long endTime = System.currentTimeMillis();
@@ -90,6 +117,10 @@ public class DeepSeekSseCallback implements Callback {
       }
     }
     ChatWsStreamCallCan.remove(sessionId + "");
+    if (reqVo.isSse()) {
+      // 手动移除连接
+      SseEmitter.closeSeeConnection(channelContext);
+    }
   }
 
   /**
@@ -117,25 +148,41 @@ public class DeepSeekSseCallback implements Callback {
           List<Choice> choices = chatResponse.getChoices();
           if (!choices.isEmpty()) {
             ChatResponseDelta delta = choices.get(0).getDelta();
+            
+            String reasoning_content = delta.getReasoning_content();
+            if (reasoning_content != null && !reasoning_content.isEmpty()) {
+              ChatWsRespVo<String> vo = ChatWsRespVo.reasoning(answerMessageId, reasoning_content);
+              byte[] jsonBytes = FastJson2Utils.toJSONBytes(vo);
+              if (reqVo.isSse()) {
+                Tio.bSend(channelContext, new SsePacket(jsonBytes));
+              } else {
+                Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+              }
+            }
+            
+            
             String part = delta.getContent();
             if (part != null && !part.isEmpty()) {
               completionContent.append(part);
               ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, part);
-              Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
+              byte[] jsonBytes = FastJson2Utils.toJSONBytes(vo);
+              if (reqVo.isSse()) {
+                Tio.bSend(channelContext, new SsePacket(jsonBytes));
+              } else {
+                Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+              }
             }
-
-            String reasoning_content = delta.getReasoning_content();
-            if (reasoning_content != null && !reasoning_content.isEmpty()) {
-              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, reasoning_content);
-              Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
-            }
+        
           }
         } else if (": keep-alive".equals(line)) {
           ChatWsRespVo<String> vo = ChatWsRespVo.keepAlive(answerMessageId);
-          WebSocketResponse websocketResponse = WebSocketResponse.fromJson(vo);
-          if (channelContext != null) {
-            Tio.bSend(channelContext, websocketResponse);
+          byte[] jsonBytes = FastJson2Utils.toJSONBytes(vo);
+          if (reqVo.isSse()) {
+
+          } else {
+            Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
           }
+
         } else {
           log.info("Data does not end with }:{}", line);
           //{"type":"messageEnd","messageId":"654b8bdb25e853"}

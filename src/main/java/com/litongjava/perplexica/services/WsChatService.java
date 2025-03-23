@@ -36,7 +36,9 @@ import com.litongjava.perplexica.vo.WebPageSource;
 import com.litongjava.template.PromptEngine;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
+import com.litongjava.tio.http.common.sse.SsePacket;
 import com.litongjava.tio.utils.environment.EnvUtils;
+import com.litongjava.tio.utils.json.FastJson2Utils;
 import com.litongjava.tio.utils.json.JsonUtils;
 import com.litongjava.tio.utils.snowflake.SnowflakeIdUtils;
 import com.litongjava.tio.utils.tag.TagUtils;
@@ -50,8 +52,11 @@ import okhttp3.Callback;
 @Slf4j
 public class WsChatService {
   private static final Striped<Lock> sessionLocks = Striped.lock(1024);
-  GeminiPredictService geminiPredictService = Aop.get(GeminiPredictService.class);
+  private GeminiPredictService geminiPredictService = Aop.get(GeminiPredictService.class);
   private AiSearchService aiSerchService = Aop.get(AiSearchService.class);
+  private SummaryQuestionService summaryQuestionService = Aop.get(SummaryQuestionService.class);
+  private ChatMessgeService chatMessgeService = Aop.get(ChatMessgeService.class);
+  private WebpageSourceService webpageSourceService = Aop.get(WebpageSourceService.class);
 
   /**
    * 使用搜索模型处理消息
@@ -71,7 +76,7 @@ public class WsChatService {
       lock.lock();
       try {
         TioThreadUtils.execute(() -> {
-          String summary = Aop.get(SummaryQuestionService.class).summary(content);
+          String summary = summaryQuestionService.summary(content);
           new MaxSearchChatSession().setId(sessionId).setUserId(userId).setTitle(summary).setFocusMode(focusMode).save();
         });
       } finally {
@@ -80,7 +85,7 @@ public class WsChatService {
     }
 
     // query history
-    List<ChatMessage> history = Aop.get(ChatMessgeService.class).getHistoryById(sessionId);
+    List<ChatMessage> history = chatMessgeService.getHistoryById(sessionId);
     chatParamVo.setHistory(history);
 
     if (content.length() > 30 || history.size() > 0) {
@@ -89,7 +94,12 @@ public class WsChatService {
       chatParamVo.setRewrited(rewrited);
       if (channelContext != null) {
         Kv end = Kv.by("type", "rewrited").set("content", rewrited);
-        Tio.bSend(channelContext, WebSocketResponse.fromJson(end));
+        byte[] jsonBytes = FastJson2Utils.toJSONBytes(end);
+        if (reqMessageVo.isSse()) {
+          Tio.bSend(channelContext, new SsePacket(jsonBytes));
+        } else {
+          Tio.bSend(channelContext, WebSocketResponse.fromBytes(jsonBytes));
+        }
       }
     }
 
@@ -131,17 +141,33 @@ public class WsChatService {
       // 5. 向前端通知一个空消息，标识搜索结束，开始推理
       //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
       ChatWsRespVo<String> chatVo = ChatWsRespVo.message(answerMessageId, "");
-      WebSocketResponse websocketResponse = WebSocketResponse.fromJson(chatVo);
+      byte[] jsonBytes = FastJson2Utils.toJSONBytes(chatVo);
+
       if (channelContext != null) {
-        Tio.bSend(channelContext, websocketResponse);
+        if (reqMessageVo.isSse()) {
+          Tio.bSend(channelContext, new SsePacket(jsonBytes));
+        } else {
+          Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+        }
       }
 
       chatVo = ChatWsRespVo.message(answerMessageId, "Sorry Developing");
-      websocketResponse = WebSocketResponse.fromJson(chatVo);
+      jsonBytes = FastJson2Utils.toJSONBytes(chatVo);
       if (channelContext != null) {
-        Tio.bSend(channelContext, websocketResponse);
+        if (reqMessageVo.isSse()) {
+          Tio.bSend(channelContext, new SsePacket(jsonBytes));
+        } else {
+          Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+        }
+
         Kv end = Kv.by("type", "messageEnd").set("messageId", answerMessageId);
-        Tio.bSend(channelContext, WebSocketResponse.fromJson(end));
+        jsonBytes = FastJson2Utils.toJSONBytes(end);
+
+        if (reqMessageVo.isSse()) {
+          Tio.bSend(channelContext, new SsePacket(jsonBytes));
+        } else {
+          Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+        }
       }
     }
 
@@ -150,7 +176,7 @@ public class WsChatService {
     }
   }
 
-  public Call google(ChannelContext channelContext, Long sessionId, Long messageId, String content) {
+  public Call google(ChannelContext channelContext, Long sessionId, Long messageId, String content, boolean isSSE) {
     String cseId = (String) channelContext.getString("CSE_ID");
 
     long answerMessageId = SnowflakeIdUtils.id();
@@ -198,21 +224,30 @@ public class WsChatService {
     }
 
     if (citationList.size() > 0) {
-      List<WebPageSource> sources = Aop.get(WebpageSourceService.class).getListWithCitationsVo(citationList);
+
+      List<WebPageSource> sources = webpageSourceService.getListWithCitationsVo(citationList);
       ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
       chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId);
-      WebSocketResponse packet = WebSocketResponse.fromJson(chatRespVo);
-
+      byte[] jsonBytes = FastJson2Utils.toJSONBytes(chatRespVo);
       if (channelContext != null) {
-        Tio.bSend(channelContext, packet);
+        if (isSSE) {
+          Tio.bSend(channelContext, new SsePacket(jsonBytes));
+        } else {
+          Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+        }
       }
     }
 
     //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
     ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, "");
-    WebSocketResponse websocketResponse = WebSocketResponse.fromJson(vo);
+    byte[] jsonBytes = FastJson2Utils.toJSONBytes(vo);
     if (channelContext != null) {
-      Tio.bSend(channelContext, websocketResponse);
+      if (isSSE) {
+        Tio.bSend(channelContext, new SsePacket(jsonBytes));
+      } else {
+        Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+
+      }
     }
 
     StringBuffer pageContents = Aop.get(SpiderService.class).spiderAsync(channelContext, answerMessageId, citationList);

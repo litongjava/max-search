@@ -14,6 +14,7 @@ import com.litongjava.tio.boot.http.TioRequestContext;
 import com.litongjava.tio.http.common.HttpRequest;
 import com.litongjava.tio.http.common.HttpResponse;
 import com.litongjava.tio.http.common.MimeType;
+import com.litongjava.tio.http.server.util.CORSUtils;
 import com.litongjava.tio.http.server.util.Resps;
 import com.litongjava.tio.utils.hutool.StrUtil;
 import com.litongjava.tio.utils.json.FastJson2Utils;
@@ -23,6 +24,7 @@ public class SearchSuggestionQuesionHandler {
   public HttpResponse index(HttpRequest request) {
     String bodyString = request.getBodyString();
     HttpResponse response = TioRequestContext.getResponse();
+    CORSUtils.enableCORS(response);
     if (StrUtil.isBlank(bodyString)) {
       return Resps.fail(response, "request body can not be empty");
     }

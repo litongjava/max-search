@@ -3,6 +3,7 @@ package com.litongjava.perplexica.config;
 import com.litongjava.annotation.AConfiguration;
 import com.litongjava.annotation.Initialization;
 import com.litongjava.jfinal.aop.Aop;
+import com.litongjava.perplexica.handler.ChatSSEHandler;
 import com.litongjava.perplexica.handler.OpenAiV1ProxyHandler;
 import com.litongjava.perplexica.handler.SearchSuggestionQuesionHandler;
 import com.litongjava.perplexica.handler.SearxngSearchHandler;
@@ -47,6 +48,10 @@ public class AdminAppConfig {
       r.add("/api/v1/search", searxngSearchHandler::search);
       SearchSuggestionQuesionHandler searchSuggestionQuesionHandler = new SearchSuggestionQuesionHandler();
       r.add("/api/suggestions", searchSuggestionQuesionHandler::index);
+
+      ChatSSEHandler chatSSEHandler = new ChatSSEHandler();
+      r.add("/api/chat/sse", chatSSEHandler::chat);
+
     }
 
     // 配置控制器

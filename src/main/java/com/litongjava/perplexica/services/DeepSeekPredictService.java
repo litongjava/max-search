@@ -12,7 +12,10 @@ import com.litongjava.perplexica.vo.ChatWsReqMessageVo;
 import com.litongjava.perplexica.vo.ChatWsRespVo;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
+import com.litongjava.tio.http.common.sse.SsePacket;
+import com.litongjava.tio.utils.SystemTimer;
 import com.litongjava.tio.utils.environment.EnvUtils;
+import com.litongjava.tio.utils.json.FastJson2Utils;
 import com.litongjava.tio.websocket.common.WebSocketResponse;
 import com.litongjava.volcengine.VolcEngineConst;
 import com.litongjava.volcengine.VolcEngineModels;
@@ -61,19 +64,17 @@ public class DeepSeekPredictService {
     // 5. 向前端通知一个空消息，标识搜索结束，开始推理
     //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
     ChatWsRespVo<String> chatVo = ChatWsRespVo.message(answerMessageId, "");
-    WebSocketResponse websocketResponse = WebSocketResponse.fromJson(chatVo);
+    byte[] jsonBytes = FastJson2Utils.toJSONBytes(chatVo);
     if (channelContext != null) {
-      Tio.bSend(channelContext, websocketResponse);
-
-      chatVo = ChatWsRespVo.message(answerMessageId, "start thinking...");
-      websocketResponse = WebSocketResponse.fromJson(chatVo);
-
-      Tio.bSend(channelContext, websocketResponse);
+      if (reqMessageVo.isSse()) {
+        Tio.bSend(channelContext, new SsePacket(jsonBytes));
+      } else {
+        Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+      }
     }
 
-    long start = System.currentTimeMillis();
-
-    Callback callback = new DeepSeekSseCallback(channelContext, sessionId, questionMessageId, answerMessageId, start);
+    long start = SystemTimer.currTime;
+    Callback callback = new DeepSeekSseCallback(channelContext, reqMessageVo, chatParamVo, start);
     String apiKey = EnvUtils.getStr("VOLCENGINE_API_KEY");
     Call call = OpenAiClient.chatCompletions(VolcEngineConst.BASE_URL, apiKey, chatRequestVo, callback);
     return call;
