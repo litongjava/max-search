@@ -3,14 +3,14 @@ package com.litongjava.perplexica.config;
 import com.litongjava.annotation.AConfiguration;
 import com.litongjava.annotation.Initialization;
 import com.litongjava.hook.HookCan;
-import com.litongjava.perplexica.instance.PlaywrightBrowser;
+import com.litongjava.maxkb.playwright.PlaywrightBrowser;
 import com.litongjava.tio.utils.environment.EnvUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
 @AConfiguration
 @Slf4j
-public class PlaywrightConfig {
+public class SearchPlaywrightConfig {
 
   @Initialization
   public void config() {

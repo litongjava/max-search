@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.jfinal.aop.Aop;
-import com.litongjava.maxkb.config.PlaywrightConfig;
+import com.litongjava.perplexica.config.SearchPlaywrightConfig;
 import com.litongjava.tio.boot.testing.TioBootTest;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.hutool.FileUtil;
@@ -22,7 +22,7 @@ public class PlaywrightServiceTest {
 
   @Test
   public void test() {
-    TioBootTest.runWith(PlaywrightConfig.class);
+    TioBootTest.runWith(SearchPlaywrightConfig.class);
     List<String> links = new ArrayList<>();
     links.add("http://www.ce.cn/xwzx/gnsz/gdxw/202501/28/t20250128_39280413.shtml");
     links.add("https://app.xinhuanet.com/news/article.html?articleId=8bbb90d749df20a4c7b98107f32e3cc9");

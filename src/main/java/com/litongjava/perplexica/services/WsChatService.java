@@ -49,7 +49,7 @@ import okhttp3.Callback;
 
 @Slf4j
 public class WsChatService {
-  private static final Striped<Lock> sessionLocks = Striped.lock(64);
+  private static final Striped<Lock> sessionLocks = Striped.lock(1024);
   GeminiPredictService geminiPredictService = Aop.get(GeminiPredictService.class);
   private AiSearchService aiSerchService = Aop.get(AiSearchService.class);
 

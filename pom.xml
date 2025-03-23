@@ -23,7 +23,7 @@
 
     <dependency>
       <groupId>com.litongjava</groupId>
-      <artifactId>java-maxkb</artifactId>
+      <artifactId>maxkb-business</artifactId>
       <version>1.0.0</version>
     </dependency>
     <dependency>
