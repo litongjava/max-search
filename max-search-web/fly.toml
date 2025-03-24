@@ -1,0 +1,20 @@
+app = "max-search-web"
+primary_region = 'sjc'
+
+kill_signal = "SIGINT"
+kill_timeout = 5
+processes = []
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "2048MB"
+
+[http_service]
+  internal_port = 80
+  force_https = false
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+  
+[env]
+  LANG="C.UTF-8"

@@ -59,6 +59,17 @@
             </configuration>
           </plugin>
         </plugins>
+        <resources>
+          <resource>
+            <directory>src/main/resources</directory>
+            <includes>
+              <include>**/*.*</include>
+            </includes>
+            <excludes>
+              <exclude>**/.env </exclude>
+            </excludes>
+          </resource>
+        </resources>
       </build>
     </profile>
 
@@ -85,6 +96,17 @@
             </executions>
           </plugin>
         </plugins>
+        <resources>
+          <resource>
+            <directory>src/main/resources</directory>
+            <includes>
+              <include>**/*.*</include>
+            </includes>
+            <excludes>
+              <exclude>**/.env </exclude>
+            </excludes>
+          </resource>
+        </resources>
       </build>
     </profile>
     <!-- assembly -->
@@ -122,6 +144,9 @@
             <includes>
               <include>**/*.*</include>
             </includes>
+            <excludes>
+              <exclude>**/.env </exclude>
+            </excludes>
           </resource>
         </resources>
       </build>

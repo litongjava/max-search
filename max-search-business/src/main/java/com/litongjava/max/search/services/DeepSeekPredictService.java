@@ -37,7 +37,6 @@ public class DeepSeekPredictService {
     List<OpenAiChatMessage> contents = new ArrayList<>();
     if (systemPrompt != null) {
       contents.add(new OpenAiChatMessage("system", systemPrompt));
-      log.info("deepkseek:{}", systemPrompt);
     }
 
     List<List<String>> history = reqMessageVo.getHistory();

@@ -25,8 +25,10 @@ import com.litongjava.tio.http.common.sse.SsePacket;
 import com.litongjava.tio.utils.json.FastJson2Utils;
 import com.litongjava.tio.websocket.common.WebSocketResponse;
 
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 
+@Slf4j
 public class AiSearchService {
   public PredictService predictService = Aop.get(PredictService.class);
   private AiRankerService aiRankerService = Aop.get(AiRankerService.class);
@@ -121,6 +123,7 @@ public class AiSearchService {
       String isoTimeStr = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
       Kv kv = Kv.by("date", isoTimeStr).set("context", markdown);
       inputPrompt = PromptEngine.renderToString("WebSearchResponsePrompt.txt", kv);
+      log.info("deepkseek:{}", inputPrompt);
     }
     chatParamVo.setSystemPrompt(inputPrompt);
     return predictService.predict(channelContext, reqMessageVo, chatParamVo);

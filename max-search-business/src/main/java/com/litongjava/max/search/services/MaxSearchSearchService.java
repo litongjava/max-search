@@ -8,6 +8,9 @@ import com.litongjava.searxng.SearxngResult;
 import com.litongjava.searxng.SearxngSearchClient;
 import com.litongjava.searxng.SearxngSearchParam;
 import com.litongjava.searxng.SearxngSearchResponse;
+import com.litongjava.tavily.TavilyClient;
+import com.litongjava.tavily.TavilySearchResponse;
+import com.litongjava.tavily.TavilySearchResult;
 
 public class MaxSearchSearchService {
 
@@ -29,21 +32,23 @@ public class MaxSearchSearchService {
    * @return 包含标题、链接以及详细内容的网页内容列表
    */
   public List<WebPageContent> useTavilySearch(String quesiton) {
-    // 使用 Tavily Search 的实现方式，直接调用 SearxngSearchClient.search() 方法
-    SearxngSearchResponse searchResponse = SearxngSearchClient.search(quesiton);
-    List<SearxngResult> results = searchResponse.getResults();
+    TavilySearchResponse searchResponse = TavilyClient.search(quesiton);
+
+    List<TavilySearchResult> results = searchResponse.getResults();
     List<WebPageContent> webPageContents = new ArrayList<>();
 
-    for (SearxngResult searxngResult : results) {
-      String title = searxngResult.getTitle();
-      String url = searxngResult.getUrl();
+    for (TavilySearchResult tavilySearchResult : results) {
+      String title = tavilySearchResult.getTitle();
+      String url = tavilySearchResult.getUrl();
+      String content = tavilySearchResult.getContent();
 
+      String raw_content = tavilySearchResult.getRaw_content();
       // 构造 WebPageContent 对象，并设置详细内容
-      WebPageContent webpageContent = new WebPageContent(title, url);
-      webpageContent.setContent(searxngResult.getContent());
+      WebPageContent webpageContent = new WebPageContent(title, url, content, raw_content);
 
       webPageContents.add(webpageContent);
     }
+
     return webPageContents;
   }
 
