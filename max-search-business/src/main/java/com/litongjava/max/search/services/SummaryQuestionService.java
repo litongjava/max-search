@@ -9,6 +9,7 @@ import com.litongjava.gemini.GoogleGeminiModels;
 import com.litongjava.openai.chat.OpenAiChatResponseVo;
 import com.litongjava.openai.client.OpenAiClient;
 import com.litongjava.template.PromptEngine;
+import com.litongjava.tio.utils.environment.EnvUtils;
 
 public class SummaryQuestionService {
 
@@ -30,7 +31,8 @@ public class SummaryQuestionService {
   }
 
   private String useGemini(String prompt) {
-    return GeminiClient.chatWithModel(GoogleGeminiModels.GEMINI_2_0_FLASH, "user", prompt);
+    String apiKey = EnvUtils.getStr("GEMINI_API_KEY");
+    return GeminiClient.chatWithModel(apiKey, GoogleGeminiModels.GEMINI_2_0_FLASH, "user", prompt);
   }
 
   private String useOpenAi(String prompt) {
