@@ -24,7 +24,7 @@ Max-Search 项目以 AI 搜索为核心，结合自然语言处理与搜索引�
 7. **问答推理**：基于深度学习模型，对用户提出的问题进行推理回答，支持多轮对话及复杂问题分析。
 
 ## 项目功能概览
-- **TCP、UDP、HTTP 及 WebSocket** 等多种通信方式接口，满足多场景下的实时或异步调用需求。
+- **SSE 及 WebSocket** 等多种通信方式接口，满足多场景下的实时或异步调用需求。
 - **深度推理问答**：基于火山引擎 DeepSeek 等模型进行上下文语义分析、逻辑推理与结果生成。
 - **搜索重排**：利用深度学习模型对初步搜索结果进行重排，优先展示更符合用户意图的结果。
 - **生成建议问**：对用户输入进行分析，智能生成与其意图相关的其他可能问题。
@@ -34,7 +34,7 @@ Max-Search 项目以 AI 搜索为核心，结合自然语言处理与搜索引�
 ## 环境与依赖
 1. **JDK** 版本要求：Java 8 及以上。
 2. **Maven** 或 **Gradle** 构建工具（根据项目配置）。
-3. **前端** 采用 Vue 或其他常见框架（详见 [Perplexica 前端仓库](https://github.com/litongjava/Perplexica/tree/java-max-search)）。
+3. **前端** 采用 NextJS 框架（详见 [Perplexica 前端仓库](https://github.com/litongjava/Perplexica/tree/java-max-search)）。
 4. **数据库**：支持多种数据库类型（参考 [ai-search 数据库文档](https://www.tio-boot.com/zh/64_ai-search/02.html)），如需要可进行自定义配置。
 5. **其他依赖**：请参阅各自模块下的 `pom.xml` 或 `package.json` 进行安装。
 
@@ -47,9 +47,9 @@ Max-Search 项目以 AI 搜索为核心，结合自然语言处理与搜索引�
    - 修改 `application.yml` 或 `application.properties` 文件，配置搜索源、数据库连接等信息。
 3. **构建并运行后端**：
    ```bash
-   # 进入 max-search 目录后
-   mvn clean install
-   java -jar target/max-search-0.0.1-SNAPSHOT.jar
+   # 进入 max-search-web 目录后
+   mvn clean package -DskipTests -Pproduction
+   java -jar target/max-search-1.0.0.jar
    ```
 4. **克隆并启动前端**（如有需要）：
    ```bash
