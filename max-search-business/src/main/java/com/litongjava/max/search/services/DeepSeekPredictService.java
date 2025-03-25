@@ -3,6 +3,8 @@ package com.litongjava.max.search.services;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FileSystemUtils;
+
 import com.litongjava.max.search.callback.SearchDeepSeekSseCallback;
 import com.litongjava.max.search.vo.ChatParamVo;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
@@ -16,6 +18,7 @@ import com.litongjava.tio.http.common.sse.SsePacket;
 import com.litongjava.tio.utils.SystemTimer;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.json.FastJson2Utils;
+import com.litongjava.tio.utils.json.JsonUtils;
 import com.litongjava.tio.websocket.common.WebSocketResponse;
 import com.litongjava.volcengine.VolcEngineConst;
 import com.litongjava.volcengine.VolcEngineModels;
@@ -58,8 +61,12 @@ public class DeepSeekPredictService {
     OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(VolcEngineModels.DEEPSEEK_R1_250120)
         //
         .setMessages(contents);
-    chatRequestVo.setStream(true);
 
+    chatRequestVo.setStreamIncludeUsage(true);
+    chatRequestVo.setStream(true);
+    chatRequestVo.setMax_tokens(8192);
+
+    // log.info("chatRequestVo:{}",JsonUtils.toSkipNullJson(chatRequestVo));
     // 5. 向前端通知一个空消息，标识搜索结束，开始推理
     //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
     ChatWsRespVo<String> chatVo = ChatWsRespVo.message(answerMessageId, "");

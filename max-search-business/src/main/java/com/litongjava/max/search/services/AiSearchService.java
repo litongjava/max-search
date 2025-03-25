@@ -22,6 +22,7 @@ import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.http.common.RequestHeaderKey;
 import com.litongjava.tio.http.common.sse.SsePacket;
+import com.litongjava.tio.utils.hutool.StrUtil;
 import com.litongjava.tio.utils.json.FastJson2Utils;
 import com.litongjava.tio.websocket.common.WebSocketResponse;
 
@@ -33,6 +34,7 @@ public class AiSearchService {
   public PredictService predictService = Aop.get(PredictService.class);
   private AiRankerService aiRankerService = Aop.get(AiRankerService.class);
   private MaxSearchSearchService maxSearchSearchService = Aop.get(MaxSearchSearchService.class);
+  private VectorRankerService vectorRankerService = Aop.get(VectorRankerService.class);
   public boolean spped = true;
 
   /**
@@ -69,11 +71,11 @@ public class AiSearchService {
       // 根据优化模式对搜索结果进行处理
       JinaReaderService jinaReaderService = Aop.get(JinaReaderService.class);
       if (OptimizationMode.balanced.equals(optimizationMode)) {
-        VectorRankerService vectorRankerService = Aop.get(VectorRankerService.class);
+
         List<WebPageContent> rankedWebPageContents = vectorRankerService.filter(webPageContents, quesiton, 1);
         rankedWebPageContents = jinaReaderService.spider(webPageContents);
         webPageContents.set(0, rankedWebPageContents.get(0));
-        
+
       } else if (OptimizationMode.quality.equals(optimizationMode)) {
         // 质量模式下先过滤，再异步补全页面内容
         webPageContents = aiRankerService.filter(webPageContents, quesiton, 6);
@@ -116,7 +118,12 @@ public class AiSearchService {
       StringBuffer markdown = new StringBuffer();
       for (int i = 0; i < webPageContents.size(); i++) {
         WebPageContent webPageContent = webPageContents.get(i);
-        markdown.append("source " + (i + 1) + " " + webPageContent.getContent());
+        String sourceContent = webPageContent.getContent();
+        if (StrUtil.isBlank(sourceContent)) {
+          sourceContent = webPageContent.getDescription();
+        }
+        String sourceFormat = "source %d %s %s  ";
+        markdown.append(String.format(sourceFormat, (i + 1), webPageContent.getUrl(), sourceContent));
       }
 
       // 使用模板引擎生成提示词，提示词中包含当前日期和搜索结果上下文

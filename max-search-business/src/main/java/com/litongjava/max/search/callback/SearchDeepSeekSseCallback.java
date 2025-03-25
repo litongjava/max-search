@@ -10,6 +10,7 @@ import com.litongjava.max.search.vo.ChatParamVo;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
 import com.litongjava.max.search.vo.ChatWsRespVo;
 import com.litongjava.openai.chat.ChatResponseDelta;
+import com.litongjava.openai.chat.ChatResponseUsage;
 import com.litongjava.openai.chat.Choice;
 import com.litongjava.openai.chat.OpenAiChatResponseVo;
 import com.litongjava.tio.core.ChannelContext;
@@ -17,6 +18,8 @@ import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.http.common.sse.SsePacket;
 import com.litongjava.tio.http.server.util.SseEmitter;
 import com.litongjava.tio.utils.json.FastJson2Utils;
+import com.litongjava.tio.utils.json.Json;
+import com.litongjava.tio.utils.json.JsonUtils;
 import com.litongjava.tio.websocket.common.WebSocketResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -134,6 +137,7 @@ public class SearchDeepSeekSseCallback implements Callback {
   public StringBuffer onResponseSuccess(ChannelContext channelContext, Long answerMessageId, Long start, ResponseBody responseBody) throws IOException {
     StringBuffer completionContent = new StringBuffer();
     BufferedSource source = responseBody.source();
+    ChatResponseUsage usage = null;
     String line;
 
     while ((line = source.readUtf8Line()) != null) {
@@ -141,11 +145,14 @@ public class SearchDeepSeekSseCallback implements Callback {
         continue;
       }
       // 处理数据行
+      //log.info("line:{}",line);
       if (line.length() > 6) {
         String data = line.substring(6);
         if (data.endsWith("}")) {
           OpenAiChatResponseVo chatResponse = FastJson2Utils.parse(data, OpenAiChatResponseVo.class);
           List<Choice> choices = chatResponse.getChoices();
+          usage = chatResponse.getUsage();
+          
           if (!choices.isEmpty()) {
             ChatResponseDelta delta = choices.get(0).getDelta();
             
@@ -184,7 +191,7 @@ public class SearchDeepSeekSseCallback implements Callback {
           }
 
         } else {
-          log.info("Data does not end with }:{}", line);
+          log.info("Data does not end with }:{},{}", line,JsonUtils.toSkipNullJson(usage));
           //{"type":"messageEnd","messageId":"654b8bdb25e853"}
 
         }

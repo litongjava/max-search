@@ -54,7 +54,7 @@ public class WsChatService {
   private static final Striped<Lock> sessionLocks = Striped.lock(1024);
   private GeminiPredictService geminiPredictService = Aop.get(GeminiPredictService.class);
   private AiSearchService aiSerchService = Aop.get(AiSearchService.class);
-  private SummaryQuestionService summaryQuestionService = Aop.get(SummaryQuestionService.class);
+  private MaxSearchSummaryQuestionService summaryQuestionService = Aop.get(MaxSearchSummaryQuestionService.class);
   private ChatMessgeService chatMessgeService = Aop.get(ChatMessgeService.class);
   private WebpageSourceService webpageSourceService = Aop.get(WebpageSourceService.class);
 

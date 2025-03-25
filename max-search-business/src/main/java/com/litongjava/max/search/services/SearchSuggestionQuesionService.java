@@ -28,10 +28,13 @@ public class SearchSuggestionQuesionService {
 
   public String generate(List<ChatMessage> histories) {
 
+    if (histories == null || histories.size() < 1) {
+      return null;
+    }
     // 调用大模型，传入模型名称、Prompt 与对话历史
     String content = useGemini(prompt, histories);
 
-    if(StrUtil.isBlank(content)) {
+    if (StrUtil.isBlank(content)) {
       return null;
     }
     return content;

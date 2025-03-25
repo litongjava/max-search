@@ -11,7 +11,10 @@ import com.litongjava.openai.client.OpenAiClient;
 import com.litongjava.template.PromptEngine;
 import com.litongjava.tio.utils.environment.EnvUtils;
 
-public class SummaryQuestionService {
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class MaxSearchSummaryQuestionService {
 
   public String summary(String question) {
     // 1. 渲染模板
@@ -21,8 +24,8 @@ public class SummaryQuestionService {
     String prompt = template.renderToString(values);
     // 2. 调用大模型进行推理
     //String content = useOpenAi(prompt);
+    log.info("use gemini");
     String content = useGemini(prompt);
-
     // 3. 判断结果并返回
     if ("not_needed".equals(content)) {
       return question; // 或者根据实际需求，直接返回 "not_needed"
