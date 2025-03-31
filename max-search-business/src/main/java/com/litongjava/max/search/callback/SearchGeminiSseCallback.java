@@ -15,6 +15,7 @@ import com.litongjava.max.search.vo.ChatWsReqMessageVo;
 import com.litongjava.max.search.vo.ChatWsRespVo;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
+import com.litongjava.tio.http.common.sse.SsePacket;
 import com.litongjava.tio.http.server.util.SseEmitter;
 import com.litongjava.tio.utils.json.FastJson2Utils;
 import com.litongjava.tio.websocket.common.WebSocketResponse;
@@ -35,13 +36,12 @@ public class SearchGeminiSseCallback implements Callback {
   private Long sessionId;
   private long answerMessageId;
 
-
   public SearchGeminiSseCallback(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, ChatParamVo chatParamVo,
       //
       long start) {
-    this.channelContext=channelContext;
-    this.reqVo=reqMessageVo;
-    this.chatParamVo=chatParamVo;
+    this.channelContext = channelContext;
+    this.reqVo = reqMessageVo;
+    this.chatParamVo = chatParamVo;
     Long sessionId = reqVo.getMessage().getChatId();
     this.sessionId = sessionId;
     this.answerMessageId = chatParamVo.getAnswerMessageId();
@@ -50,20 +50,31 @@ public class SearchGeminiSseCallback implements Callback {
   @Override
   public void onFailure(Call call, IOException e) {
     ChatWsRespVo<String> error = ChatWsRespVo.error("CHAT_ERROR", e.getMessage());
-    WebSocketResponse packet = WebSocketResponse.fromJson(error);
-    Tio.bSend(channelContext, packet);
-    ChatWsStreamCallCan.remove(sessionId.toString());
-    SseEmitter.closeSeeConnection(channelContext);
+    byte[] jsonBytes = FastJson2Utils.toJSONBytes(error);
+    if (reqVo.isSse()) {
+      Tio.bSend(channelContext, new SsePacket(jsonBytes));
+      ChatWsStreamCallCan.remove(sessionId + "");
+      SseEmitter.closeSeeConnection(channelContext);
+
+    } else {
+      WebSocketResponse packet = new WebSocketResponse(jsonBytes);
+      Tio.bSend(channelContext, packet);
+    }
   }
 
   @Override
   public void onResponse(Call call, Response response) throws IOException {
     if (!response.isSuccessful()) {
-      String message = "Chat model response an unsuccessful message:" + response.body().string();
+      String string = response.body().string();
+      String message = "Chat model response an unsuccessful message:" + string;
       log.error("message:{}", message);
       ChatWsRespVo<String> data = ChatWsRespVo.error("STREAM_ERROR", message);
-      WebSocketResponse webSocketResponse = WebSocketResponse.fromJson(data);
-      Tio.bSend(channelContext, webSocketResponse);
+      byte[] jsonBytes = FastJson2Utils.toJSONBytes(data);
+      if (reqVo.isSse()) {
+        Tio.bSend(channelContext, new SsePacket(jsonBytes));
+      } else {
+        Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+      }
       return;
     }
 
@@ -72,9 +83,12 @@ public class SearchGeminiSseCallback implements Callback {
         String message = "response body is null";
         log.error(message);
         ChatWsRespVo<String> data = ChatWsRespVo.progress(message);
-        WebSocketResponse webSocketResponse = WebSocketResponse.fromJson(data);
-        Tio.bSend(channelContext, webSocketResponse);
-        return;
+        byte[] jsonBytes = FastJson2Utils.toJSONBytes(data);
+        if (reqVo.isSse()) {
+          Tio.bSend(channelContext, new SsePacket(jsonBytes));
+        } else {
+          Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+        }
       }
       StringBuffer completionContent = onSuccess(channelContext, answerMessageId, start, responseBody);
       // save user mesasge
@@ -84,7 +98,12 @@ public class SearchGeminiSseCallback implements Callback {
           //
           .save();
       Kv end = Kv.by("type", "messageEnd").set("messageId", answerMessageId);
-      Tio.bSend(channelContext, WebSocketResponse.fromJson(end));
+      byte[] jsonBytes = FastJson2Utils.toJSONBytes(end);
+      if (reqVo.isSse()) {
+        Tio.bSend(channelContext, new SsePacket(jsonBytes));
+      } else {
+        Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+      }
 
       // 关闭连接
       long endTime = System.currentTimeMillis();
@@ -137,7 +156,12 @@ public class SearchGeminiSseCallback implements Callback {
             if (text != null && !text.isEmpty()) {
               completionContent.append(text);
               ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, text);
-              Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
+              byte[] jsonBytes = FastJson2Utils.toJSONBytes(vo);
+              if (reqVo.isSse()) {
+                Tio.bSend(channelContext, new SsePacket(jsonBytes));
+              } else {
+                Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+              }
             }
           }
         } else {
