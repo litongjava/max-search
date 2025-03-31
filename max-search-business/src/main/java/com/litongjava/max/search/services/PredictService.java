@@ -12,7 +12,7 @@ public class PredictService {
   private DeepSeekPredictService deepSeekPredictService = Aop.get(DeepSeekPredictService.class);
   
   public Call predict(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, ChatParamVo chatParamVo) {
-    return deepSeekPredictService.predict(channelContext, reqMessageVo, chatParamVo);
+    return geminiPredictService.predict(channelContext, reqMessageVo, chatParamVo);
   }
 
 }

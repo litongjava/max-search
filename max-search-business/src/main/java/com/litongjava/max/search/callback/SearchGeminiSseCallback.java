@@ -10,6 +10,8 @@ import com.litongjava.gemini.GeminiContentResponseVo;
 import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.max.search.can.ChatWsStreamCallCan;
 import com.litongjava.max.search.model.MaxSearchChatMessage;
+import com.litongjava.max.search.vo.ChatParamVo;
+import com.litongjava.max.search.vo.ChatWsReqMessageVo;
 import com.litongjava.max.search.vo.ChatWsRespVo;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
@@ -27,17 +29,22 @@ import okio.BufferedSource;
 @Slf4j
 public class SearchGeminiSseCallback implements Callback {
   private ChannelContext channelContext;
-  private Long chatId;
-  private Long quesitonMessageId;
-  private Long answerMessageId;
+  private ChatWsReqMessageVo reqVo;
+  private ChatParamVo chatParamVo;
   private long start;
+  private Long sessionId;
+  private long answerMessageId;
 
-  public SearchGeminiSseCallback(ChannelContext channelContext, Long sessionId, Long messageId, Long answerMessageId, long start) {
-    this.channelContext = channelContext;
-    this.chatId = sessionId;
-    this.quesitonMessageId = messageId;
-    this.answerMessageId = answerMessageId;
-    this.start = start;
+
+  public SearchGeminiSseCallback(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, ChatParamVo chatParamVo,
+      //
+      long start) {
+    this.channelContext=channelContext;
+    this.reqVo=reqMessageVo;
+    this.chatParamVo=chatParamVo;
+    Long sessionId = reqVo.getMessage().getChatId();
+    this.sessionId = sessionId;
+    this.answerMessageId = chatParamVo.getAnswerMessageId();
   }
 
   @Override
@@ -45,7 +52,7 @@ public class SearchGeminiSseCallback implements Callback {
     ChatWsRespVo<String> error = ChatWsRespVo.error("CHAT_ERROR", e.getMessage());
     WebSocketResponse packet = WebSocketResponse.fromJson(error);
     Tio.bSend(channelContext, packet);
-    ChatWsStreamCallCan.remove(chatId.toString());
+    ChatWsStreamCallCan.remove(sessionId.toString());
     SseEmitter.closeSeeConnection(channelContext);
   }
 
@@ -69,9 +76,9 @@ public class SearchGeminiSseCallback implements Callback {
         Tio.bSend(channelContext, webSocketResponse);
         return;
       }
-      StringBuffer completionContent = onResponse(channelContext, answerMessageId, start, responseBody);
+      StringBuffer completionContent = onSuccess(channelContext, answerMessageId, start, responseBody);
       // save user mesasge
-      new MaxSearchChatMessage().setId(answerMessageId).setChatId(chatId)
+      new MaxSearchChatMessage().setId(answerMessageId).setChatId(sessionId)
           //
           .setRole("assistant").setContent(completionContent.toString())
           //
@@ -95,7 +102,7 @@ public class SearchGeminiSseCallback implements Callback {
         //        }
       }
     }
-    ChatWsStreamCallCan.remove(chatId.toString());
+    ChatWsStreamCallCan.remove(sessionId.toString());
   }
 
   /**
@@ -106,7 +113,7 @@ public class SearchGeminiSseCallback implements Callback {
    * @return 完整内容
    * @throws IOException
    */
-  public StringBuffer onResponse(ChannelContext channelContext, Long answerMessageId, Long start, ResponseBody responseBody) throws IOException {
+  public StringBuffer onSuccess(ChannelContext channelContext, Long answerMessageId, Long start, ResponseBody responseBody) throws IOException {
     StringBuffer completionContent = new StringBuffer();
     BufferedSource source = responseBody.source();
     String line;

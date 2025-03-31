@@ -11,6 +11,7 @@ import com.litongjava.gemini.GeminiContentVo;
 import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.gemini.GeminiSystemInstructionVo;
 import com.litongjava.gemini.GoogleGeminiModels;
+import com.litongjava.max.search.callback.SearchDeepSeekSseCallback;
 import com.litongjava.max.search.callback.SearchGeminiSseCallback;
 import com.litongjava.max.search.consts.FocusMode;
 import com.litongjava.max.search.vo.ChatParamVo;
@@ -95,8 +96,8 @@ public class GeminiPredictService {
     // 6. 流式/一次性获取结果
     Call call = null;
     if (channelContext != null) {
-      Callback callback = new SearchGeminiSseCallback(channelContext, sessionId, quesitonMessageId, answerMessageId, start);
-      call = GeminiClient.stream(GoogleGeminiModels.GEMINI_2_0_FLASH_EXP, reqVo, callback);
+      Callback callback = new SearchGeminiSseCallback(channelContext, reqMessageVo, chatParamVo, start);
+      call = GeminiClient.stream(GoogleGeminiModels.GEMINI_2_5_PRO_EXP_03_25, reqVo, callback);
     } else {
       GeminiChatResponseVo vo = GeminiClient.generate(GoogleGeminiModels.GEMINI_2_0_FLASH_EXP, reqVo);
       log.info(vo.getCandidates().get(0).getContent().getParts().get(0).getText());

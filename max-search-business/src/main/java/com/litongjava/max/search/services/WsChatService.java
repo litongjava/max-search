@@ -13,8 +13,8 @@ import com.litongjava.gemini.GoogleGeminiModels;
 import com.litongjava.google.search.GoogleCustomSearchResponse;
 import com.litongjava.google.search.SearchResultItem;
 import com.litongjava.jfinal.aop.Aop;
-import com.litongjava.max.search.callback.SearchPerplexiticySeeCallback;
 import com.litongjava.max.search.callback.SearchGeminiSseCallback;
+import com.litongjava.max.search.callback.SearchPerplexiticySeeCallback;
 import com.litongjava.max.search.can.ChatWsStreamCallCan;
 import com.litongjava.max.search.consts.FocusMode;
 import com.litongjava.max.search.consts.SearchTableNames;
@@ -176,7 +176,13 @@ public class WsChatService {
     }
   }
 
-  public Call google(ChannelContext channelContext, Long sessionId, Long messageId, String content, boolean isSSE) {
+  public Call google(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, ChatParamVo chatParamVo,
+      //
+      long start) {
+    ChatReqMessage message = reqMessageVo.getMessage();
+    String content = message.getContent();
+    Long messageId = message.getMessageId();
+    boolean isSSE = reqMessageVo.isSse();
     String cseId = (String) channelContext.getString("CSE_ID");
 
     long answerMessageId = SnowflakeIdUtils.id();
@@ -266,9 +272,8 @@ public class WsChatService {
         //
         .setMessages(messages).setMax_tokens(3000);
     chatRequestVo.setStream(true);
-    long start = System.currentTimeMillis();
 
-    Callback callback = new SearchGeminiSseCallback(channelContext, sessionId, messageId, answerMessageId, start);
+    Callback callback = new SearchGeminiSseCallback(channelContext, reqMessageVo, chatParamVo, start);
     Call call = Aop.get(GeminiService.class).stream(chatRequestVo, callback);
     return call;
   }
