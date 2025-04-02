@@ -12,5 +12,6 @@ public interface FocusMode {
   String youtubeSearch = "youtubeSearch";
   String redditSearch = "redditSearch";
   String deepSeek = "deepSeek";
+  String rag = "rag";
 
 }

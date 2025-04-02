@@ -3,7 +3,7 @@ package com.litongjava.max.search.handler;
 import com.alibaba.fastjson2.JSONObject;
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.max.search.consts.WebSiteNames;
-import com.litongjava.max.search.services.WsChatService;
+import com.litongjava.max.search.services.MaxChatService;
 import com.litongjava.max.search.vo.ChatSignalVo;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
 import com.litongjava.max.search.vo.ChatWsRespVo;
@@ -97,7 +97,7 @@ public class ChatWebSocketHandler implements IWebSocketHandler {
       ChatWsReqMessageVo vo = FastJson2Utils.parse(text, ChatWsReqMessageVo.class);
       log.info("message:{}", text);
       try {
-        Aop.get(WsChatService.class).dispatch(channelContext, vo);
+        Aop.get(MaxChatService.class).dispatch(channelContext, vo);
       } catch (Exception e) {
         log.error(e.getMessage(), e);
         ChatWsRespVo<String> error = ChatWsRespVo.error(e.getClass().toGenericString(), e.getMessage());

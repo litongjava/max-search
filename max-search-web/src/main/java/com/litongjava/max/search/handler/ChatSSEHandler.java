@@ -2,7 +2,7 @@ package com.litongjava.max.search.handler;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.litongjava.jfinal.aop.Aop;
-import com.litongjava.max.search.services.WsChatService;
+import com.litongjava.max.search.services.MaxChatService;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
 import com.litongjava.max.search.vo.ChatWsRespVo;
 import com.litongjava.tio.boot.http.TioRequestContext;
@@ -29,29 +29,31 @@ public class ChatSSEHandler {
     // 手动发送消息到客户端,因为已经设置了sse的请求头,所以客户端的连接不会关闭
     Tio.bSend(channelContext, response);
     response.setSend(false);
-    
+
     String text = request.getBodyString();
     JSONObject reqJsonObject = FastJson2Utils.parseObject(text);
     String type = reqJsonObject.getString("type");
     if ("message".equals(type)) {
       ChatWsReqMessageVo vo = FastJson2Utils.parse(text, ChatWsReqMessageVo.class);
-      vo.setSse(true);
+      vo.setCopilotEnabled(null);
+      vo.setFocusMode("rag");
+      vo.setDomain("kapiolani");
       log.info("message:{}", text);
       try {
-        Aop.get(WsChatService.class).dispatch(channelContext, vo);
+        Aop.get(MaxChatService.class).dispatch(channelContext, vo);
       } catch (Exception e) {
         log.error(e.getMessage(), e);
-        if(vo.isSse()) {
+        if (vo.isSse()) {
           ChatWsRespVo<String> error = ChatWsRespVo.error(e.getClass().toGenericString(), e.getMessage());
           byte[] jsonBytes = FastJson2Utils.toJSONBytes(error);
           Tio.bSend(channelContext, new SsePacket(jsonBytes));
           SseEmitter.closeSeeConnection(channelContext);
-          
-        }else {
+
+        } else {
           ChatWsRespVo<String> error = ChatWsRespVo.error(e.getClass().toGenericString(), e.getMessage());
           WebSocketResponse packet = WebSocketResponse.fromJson(error);
           Tio.bSend(channelContext, packet);
-          
+
         }
       }
     }

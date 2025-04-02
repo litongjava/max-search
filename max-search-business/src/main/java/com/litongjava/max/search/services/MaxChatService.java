@@ -50,10 +50,10 @@ import okhttp3.Call;
 import okhttp3.Callback;
 
 @Slf4j
-public class WsChatService {
+public class MaxChatService {
   private static final Striped<Lock> sessionLocks = Striped.lock(1024);
   private GeminiPredictService geminiPredictService = Aop.get(GeminiPredictService.class);
-  private AiSearchService aiSerchService = Aop.get(AiSearchService.class);
+  private MaxSearchService maxSearchService = Aop.get(MaxSearchService.class);
   private MaxSearchSummaryQuestionService summaryQuestionService = Aop.get(MaxSearchSummaryQuestionService.class);
   private ChatMessgeService chatMessgeService = Aop.get(ChatMessgeService.class);
   private WebpageSourceService webpageSourceService = Aop.get(WebpageSourceService.class);
@@ -118,7 +118,11 @@ public class WsChatService {
 
     log.info("focusMode:{},{}", userId, focusMode);
     if (FocusMode.webSearch.equals(focusMode)) {
-      call = aiSerchService.search(channelContext, reqMessageVo, chatParamVo);
+      call = maxSearchService.search(channelContext, reqMessageVo, chatParamVo);
+
+    } else if (FocusMode.rag.equals(focusMode)) {
+      MaxRetrieveService maxRetrieveService = Aop.get(MaxRetrieveService.class);
+      call = maxRetrieveService.index(channelContext, reqMessageVo, chatParamVo);
 
     } else if (FocusMode.translator.equals(focusMode)) {
       String inputPrompt = Aop.get(TranslatorPromptService.class).genInputPrompt(channelContext, content, copilotEnabled, messageQuestionId, messageQuestionId, from);

@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 
 @Slf4j
-public class AiSearchService {
+public class MaxRetrieveService {
   public PredictService predictService = Aop.get(PredictService.class);
   private AiRankerService aiRankerService = Aop.get(AiRankerService.class);
   private MaxSearchSearchService maxSearchSearchService = Aop.get(MaxSearchSearchService.class);
@@ -38,17 +38,9 @@ public class AiSearchService {
   public boolean spped = true;
 
   /**
-   * 处理搜索请求
-   * 根据当前用户的设置（copilotEnabled、optimizationMode）决定是否进行搜索，
-   * 然后调用 Tavily Search（通过 MaxSearchSearchService）获取网页内容，
-   * 并进一步生成提示词供后续回答生成使用。
    *
-   * @param channelContext 通道上下文，用于返回消息
-   * @param reqMessageVo   用户请求消息对象，包含消息内容、用户设置及历史记录
-   * @param chatParamVo    对话参数对象，保存问题重写结果、提示词、搜索结果等信息
-   * @return 返回用于流式处理回答的 Call 对象
    */
-  public Call search(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, ChatParamVo chatParamVo) {
+  public Call index(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, ChatParamVo chatParamVo) {
     String optimizationMode = reqMessageVo.getOptimizationMode();
     Boolean copilotEnabled = reqMessageVo.getCopilotEnabled();
     String content = reqMessageVo.getMessage().getContent();

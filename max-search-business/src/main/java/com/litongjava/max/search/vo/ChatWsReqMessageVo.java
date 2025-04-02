@@ -15,6 +15,7 @@ public class ChatWsReqMessageVo {
   private ChatReqMessage message;
   private List<String> files;
   private String focusMode;
+  private String domain;
   private Boolean copilotEnabled;
   private String optimizationMode;
   private List<List<String>> history;
