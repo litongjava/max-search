@@ -1,130 +1,79 @@
 package com.litongjava.max.search.services;
 
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.postgresql.util.PGobject;
-
-import com.jfinal.kit.Kv;
-import com.litongjava.db.activerecord.Db;
-import com.litongjava.jfinal.aop.Aop;
-import com.litongjava.kit.PgObjectUtils;
-import com.litongjava.max.search.consts.OptimizationMode;
-import com.litongjava.max.search.vo.ChatParamVo;
-import com.litongjava.max.search.vo.ChatWsReqMessageVo;
-import com.litongjava.max.search.vo.ChatWsRespVo;
-import com.litongjava.max.search.vo.WebPageSource;
 import com.litongjava.model.web.WebPageContent;
-import com.litongjava.template.PromptEngine;
-import com.litongjava.tio.core.ChannelContext;
-import com.litongjava.tio.core.Tio;
-import com.litongjava.tio.http.common.RequestHeaderKey;
-import com.litongjava.tio.http.common.sse.SsePacket;
-import com.litongjava.tio.utils.hutool.StrUtil;
-import com.litongjava.tio.utils.json.FastJson2Utils;
-import com.litongjava.tio.websocket.common.WebSocketResponse;
+import com.litongjava.searxng.SearxngResult;
+import com.litongjava.searxng.SearxngSearchClient;
+import com.litongjava.searxng.SearxngSearchParam;
+import com.litongjava.searxng.SearxngSearchResponse;
+import com.litongjava.tavily.TavilyClient;
+import com.litongjava.tavily.TavilySearchResponse;
+import com.litongjava.tavily.TavilySearchResult;
 
-import lombok.extern.slf4j.Slf4j;
-import okhttp3.Call;
-
-@Slf4j
 public class MaxRetrieveService {
-  public PredictService predictService = Aop.get(PredictService.class);
-  private AiRankerService aiRankerService = Aop.get(AiRankerService.class);
-  private MaxSearchSearchService maxSearchSearchService = Aop.get(MaxSearchSearchService.class);
-  private VectorRankerService vectorRankerService = Aop.get(VectorRankerService.class);
-  public boolean spped = true;
 
   /**
-   *
+   * 对外暴露的搜索接口，使用 Tavily Search 进行搜索
+   * @param quesiton 用户输入的问题或查询内容
+   * @return 搜索到的网页内容列表
    */
-  public Call index(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, ChatParamVo chatParamVo) {
-    String optimizationMode = reqMessageVo.getOptimizationMode();
-    Boolean copilotEnabled = reqMessageVo.getCopilotEnabled();
-    String content = reqMessageVo.getMessage().getContent();
-    Long questionMessageId = reqMessageVo.getMessage().getMessageId();
-    long answerMessageId = chatParamVo.getAnswerMessageId();
+  public List<WebPageContent> search(String quesiton) {
+    return useTavilySearch(quesiton);
+  }
 
-    String inputPrompt = null;
-    if (copilotEnabled != null && copilotEnabled) {
-      String quesiton = null;
-      // 如果有问题重写，则优先使用重写后的问题，否则直接使用原始内容
-      if (chatParamVo.getRewrited() != null) {
-        quesiton = chatParamVo.getRewrited();
-      } else {
-        quesiton = content;
-      }
+  /**
+   * 使用 Tavily Search API 进行搜索，返回详细内容
+   * 该方法内部调用 SearxngSearchClient.search() 接口，
+   * 将返回的 SearxngResult 结果转换为 WebPageContent 对象
+   *
+   * @param quesiton 用户查询的关键词
+   * @return 包含标题、链接以及详细内容的网页内容列表
+   */
+  public List<WebPageContent> useTavilySearch(String quesiton) {
+    TavilySearchResponse searchResponse = TavilyClient.search(quesiton);
 
-      // 使用 MaxSearchSearchService 对 Tavily Search API 进行调用
-      List<WebPageContent> webPageContents = maxSearchSearchService.search(quesiton);
+    List<TavilySearchResult> results = searchResponse.getResults();
+    List<WebPageContent> webPageContents = new ArrayList<>();
 
-      // 根据优化模式对搜索结果进行处理
-      JinaReaderService jinaReaderService = Aop.get(JinaReaderService.class);
-      if (OptimizationMode.balanced.equals(optimizationMode)) {
+    for (TavilySearchResult tavilySearchResult : results) {
+      String title = tavilySearchResult.getTitle();
+      String url = tavilySearchResult.getUrl();
+      String content = tavilySearchResult.getContent();
 
-        List<WebPageContent> rankedWebPageContents = vectorRankerService.filter(webPageContents, quesiton, 1);
-        rankedWebPageContents = jinaReaderService.spider(webPageContents);
-        webPageContents.set(0, rankedWebPageContents.get(0));
+      String raw_content = tavilySearchResult.getRaw_content();
+      // 构造 WebPageContent 对象，并设置详细内容
+      WebPageContent webpageContent = new WebPageContent(title, url, content, raw_content);
 
-      } else if (OptimizationMode.quality.equals(optimizationMode)) {
-        // 质量模式下先过滤，再异步补全页面内容
-        webPageContents = aiRankerService.filter(webPageContents, quesiton, 6);
-        webPageContents = jinaReaderService.spiderAsync(webPageContents);
-      }
-
-      chatParamVo.setSources(webPageContents);
-      // 将搜索结果转换为 JSON 格式保存到数据库中（便于记录历史消息）
-      PGobject pgObject = PgObjectUtils.json(webPageContents);
-      Db.updateBySql("update max_search_chat_message set sources=? where id=?", pgObject, questionMessageId);
-
-      List<WebPageSource> sources = new ArrayList<>();
-
-      for (WebPageContent webPageConteont : webPageContents) {
-        sources.add(new WebPageSource(webPageConteont.getTitle(), webPageConteont.getUrl(), webPageConteont.getContent()));
-      }
-
-      String host = channelContext.getString(RequestHeaderKey.Host);
-      if (host == null) {
-        host = "//127.0.0.1";
-      } else {
-        host = "//" + host;
-      }
-      sources.add(new WebPageSource("All Sources", host + "/sources/" + questionMessageId));
-      // 返回 sources 数据给客户端
-      ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
-      chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId);
-
-      // 通过 WebSocket or sse 返回搜索结果引用信息给客户端
-      if (channelContext != null) {
-        byte[] jsonBytes = FastJson2Utils.toJSONBytes(chatRespVo);
-        if (reqMessageVo.isSse()) {
-          Tio.bSend(channelContext, new SsePacket(jsonBytes));
-        } else {
-          Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
-        }
-      }
-
-      // 拼接所有搜索结果内容，用于生成提示词
-      StringBuffer markdown = new StringBuffer();
-      for (int i = 0; i < webPageContents.size(); i++) {
-        WebPageContent webPageContent = webPageContents.get(i);
-        String sourceContent = webPageContent.getContent();
-        if (StrUtil.isBlank(sourceContent)) {
-          sourceContent = webPageContent.getDescription();
-        }
-        String sourceFormat = "source %d %s %s  ";
-        markdown.append(String.format(sourceFormat, (i + 1), webPageContent.getUrl(), sourceContent));
-      }
-
-      // 使用模板引擎生成提示词，提示词中包含当前日期和搜索结果上下文
-      String isoTimeStr = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
-      Kv kv = Kv.by("date", isoTimeStr).set("context", markdown);
-      inputPrompt = PromptEngine.renderToString("WebSearchResponsePrompt.txt", kv);
-      log.info("deepkseek:{}", inputPrompt);
+      webPageContents.add(webpageContent);
     }
-    chatParamVo.setSystemPrompt(inputPrompt);
-    return predictService.predict(channelContext, reqMessageVo, chatParamVo);
+
+    return webPageContents;
+  }
+
+  /**
+   * 使用 SearxNG 搜索参数方式进行搜索
+   * 可作为备用实现，此方法先设置搜索格式和查询关键词，再调用搜索接口
+   *
+   * @param quesiton 用户查询的关键词
+   * @return 搜索到的网页内容列表
+   */
+  public List<WebPageContent> useSearchNg(String quesiton) {
+    SearxngSearchParam searxngSearchParam = new SearxngSearchParam();
+    searxngSearchParam.setFormat("json");
+    searxngSearchParam.setQ(quesiton);
+
+    SearxngSearchResponse searchResponse = SearxngSearchClient.search(searxngSearchParam);
+    List<SearxngResult> results = searchResponse.getResults();
+    List<WebPageContent> webPageContents = new ArrayList<>();
+    for (SearxngResult searxngResult : results) {
+      String title = searxngResult.getTitle();
+      String url = searxngResult.getUrl();
+      WebPageContent webpageContent = new WebPageContent(title, url);
+      webpageContent.setContent(searxngResult.getContent());
+      webPageContents.add(webpageContent);
+    }
+    return webPageContents;
   }
 }

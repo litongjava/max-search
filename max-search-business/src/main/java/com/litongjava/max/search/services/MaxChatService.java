@@ -121,7 +121,7 @@ public class MaxChatService {
       call = maxSearchService.search(channelContext, reqMessageVo, chatParamVo);
 
     } else if (FocusMode.rag.equals(focusMode)) {
-      MaxRetrieveService maxRetrieveService = Aop.get(MaxRetrieveService.class);
+      MaxRagService maxRetrieveService = Aop.get(MaxRagService.class);
       call = maxRetrieveService.index(channelContext, reqMessageVo, chatParamVo);
 
     } else if (FocusMode.translator.equals(focusMode)) {
