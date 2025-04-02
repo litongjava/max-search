@@ -72,7 +72,7 @@ CREATE TABLE "public"."max_kb_dataset" (
   "type" VARCHAR,
   "embedding_mode_id" BIGINT,
   "meta" JSONB,
-  "user_id" BIGINT NOT NULL,
+  "user_id" BIGINT,
   "remark" VARCHAR(256),
   "creator" VARCHAR(64) DEFAULT '',
   "create_time" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -81,7 +81,6 @@ CREATE TABLE "public"."max_kb_dataset" (
   "deleted" SMALLINT DEFAULT 0,
   "tenant_id" BIGINT NOT NULL DEFAULT 0
 );
-
 
 DROP TABLE IF EXISTS "public"."max_kb_application_dataset_mapping";
 
@@ -100,14 +99,16 @@ CREATE TABLE "public"."max_kb_document" (
   "user_id" BIGINT,
   "title" VARCHAR,
   "name" VARCHAR NOT NULL,
-  "char_length" INT NOT NULL,
-  "status" VARCHAR NOT NULL,
-  "is_active" BOOLEAN NOT NULL,
   "type" VARCHAR NOT NULL,
+  "url" VARCHAR,
+  "content" text,
+  "char_length" INT,
+  "status" VARCHAR,
+  "is_active" BOOLEAN,
   "meta" JSONB,
   "dataset_id" BIGINT NOT NULL,
-  "hit_handling_method" VARCHAR NOT NULL,
-  "directly_return_similarity" FLOAT8 NOT NULL,
+  "hit_handling_method" VARCHAR,
+  "directly_return_similarity" FLOAT8,
   "paragraph_count" INT,
   "files" JSON,
   "creator" VARCHAR(64) DEFAULT '',
@@ -118,19 +119,18 @@ CREATE TABLE "public"."max_kb_document" (
   "tenant_id" BIGINT NOT NULL DEFAULT 0
 );
 
-
 DROP TABLE IF EXISTS "public"."max_kb_paragraph";
 
 CREATE TABLE "public"."max_kb_paragraph" (
   "id" BIGINT PRIMARY KEY,
   "source_id" BIGINT,
   "source_type" VARCHAR,
-  "title" VARCHAR NOT NULL,
+  "title" VARCHAR,
   "content" VARCHAR NOT NULL,
   "md5" VARCHAR NOT NULL,
-  "status" VARCHAR NOT NULL,
-  "hit_num" INT NOT NULL,
-  "is_active" BOOLEAN NOT NULL,
+  "status" VARCHAR,
+  "hit_num" INT,
+  "is_active" BOOLEAN,
   "dataset_id" BIGINT NOT NULL,
   "document_id" BIGINT NOT NULL,
   "embedding" VECTOR,
