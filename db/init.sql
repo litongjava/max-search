@@ -61,3 +61,122 @@ CREATE TABLE tio_boot_admin_system_upload_file (
 );
 
 create index "index_tio_boot_admin_system_upload_file_md5" on tio_boot_admin_system_upload_file("md5")  
+
+
+DROP TABLE IF EXISTS "public"."max_kb_dataset";
+
+CREATE TABLE "public"."max_kb_dataset" (
+  "id" BIGINT PRIMARY KEY,
+  "name" VARCHAR NOT NULL,
+  "desc" VARCHAR,
+  "type" VARCHAR,
+  "embedding_mode_id" BIGINT,
+  "meta" JSONB,
+  "user_id" BIGINT NOT NULL,
+  "remark" VARCHAR(256),
+  "creator" VARCHAR(64) DEFAULT '',
+  "create_time" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updater" VARCHAR(64) DEFAULT '',
+  "update_time" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted" SMALLINT DEFAULT 0,
+  "tenant_id" BIGINT NOT NULL DEFAULT 0
+);
+
+
+DROP TABLE IF EXISTS "public"."max_kb_application_dataset_mapping";
+
+CREATE TABLE "public"."max_kb_application_dataset_mapping" (
+  "id" BIGINT PRIMARY KEY,
+  "application_id" BIGINT NOT NULL,
+  "dataset_id" BIGINT NOT NULL
+);
+
+
+DROP TABLE IF EXISTS "public"."max_kb_document";
+
+CREATE TABLE "public"."max_kb_document" (
+  "id" BIGINT NOT NULL PRIMARY KEY,
+  "file_id" BIGINT,
+  "user_id" BIGINT,
+  "title" VARCHAR,
+  "name" VARCHAR NOT NULL,
+  "char_length" INT NOT NULL,
+  "status" VARCHAR NOT NULL,
+  "is_active" BOOLEAN NOT NULL,
+  "type" VARCHAR NOT NULL,
+  "meta" JSONB,
+  "dataset_id" BIGINT NOT NULL,
+  "hit_handling_method" VARCHAR NOT NULL,
+  "directly_return_similarity" FLOAT8 NOT NULL,
+  "paragraph_count" INT,
+  "files" JSON,
+  "creator" VARCHAR(64) DEFAULT '',
+  "create_time" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updater" VARCHAR(64) DEFAULT '',
+  "update_time" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted" SMALLINT NOT NULL DEFAULT 0,
+  "tenant_id" BIGINT NOT NULL DEFAULT 0
+);
+
+
+DROP TABLE IF EXISTS "public"."max_kb_paragraph";
+
+CREATE TABLE "public"."max_kb_paragraph" (
+  "id" BIGINT PRIMARY KEY,
+  "source_id" BIGINT,
+  "source_type" VARCHAR,
+  "title" VARCHAR NOT NULL,
+  "content" VARCHAR NOT NULL,
+  "md5" VARCHAR NOT NULL,
+  "status" VARCHAR NOT NULL,
+  "hit_num" INT NOT NULL,
+  "is_active" BOOLEAN NOT NULL,
+  "dataset_id" BIGINT NOT NULL,
+  "document_id" BIGINT NOT NULL,
+  "embedding" VECTOR,
+  "meta" JSONB,
+  "search_vector" TSVECTOR,
+  "creator" VARCHAR(64) DEFAULT '',
+  "create_time" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updater" VARCHAR(64) DEFAULT '',
+  "update_time" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted" SMALLINT DEFAULT 0,
+  "tenant_id" BIGINT NOT NULL DEFAULT 0
+);
+
+
+DROP TABLE IF EXISTS "public"."max_kb_sentence";
+
+CREATE TABLE "public"."max_kb_sentence" (
+  "id" BIGINT PRIMARY KEY,
+  "type" INT,
+  "content" VARCHAR NOT NULL,
+  "md5" VARCHAR NOT NULL,
+  "hit_num" INT NOT NULL,
+  "dataset_id" BIGINT NOT NULL,
+  "document_id" BIGINT NOT NULL,
+  "paragraph_id" BIGINT NOT NULL,
+  "embedding" VECTOR,
+  "meta" JSONB,
+  "search_vector" TSVECTOR,
+  "creator" VARCHAR(64) DEFAULT '',
+  "create_time" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updater" VARCHAR(64) DEFAULT '',
+  "update_time" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted" SMALLINT DEFAULT 0,
+  "tenant_id" BIGINT NOT NULL DEFAULT 0
+);
+
+
+DROP TABLE IF EXISTS "public"."max_kb_embedding_cache";
+
+CREATE TABLE "public"."max_kb_embedding_cache" (
+  "id" BIGINT PRIMARY KEY,
+  "t" TEXT,
+  "m" VARCHAR,
+  "v" VECTOR,
+  "md5" VARCHAR
+);
+
+CREATE INDEX "idx_max_kb_embedding_cache_md5" ON "public"."max_kb_embedding_cache" USING btree ("md5");
+CREATE INDEX "idx_max_kb_embedding_cache_md5_m" ON "public"."max_kb_embedding_cache" USING btree ("md5", "m");
