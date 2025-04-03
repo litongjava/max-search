@@ -93,7 +93,7 @@ public class GeminiPredictService {
     ChatDeltaRespVo<String> chatVo = ChatDeltaRespVo.message(answerMessageId, "");
     byte[] jsonBytes = FastJson2Utils.toJSONBytes(chatVo);
     
-    ChatDeltaRespVo<String> greeting = ChatDeltaRespVo.message(answerMessageId, "let me answer the user's question.");
+    ChatDeltaRespVo<String> greeting = ChatDeltaRespVo.reasoning(answerMessageId, "let me answer the user's question.");
     byte[] greetingBytes = FastJson2Utils.toJSONBytes(greeting);
     
     if (channelContext != null) {
