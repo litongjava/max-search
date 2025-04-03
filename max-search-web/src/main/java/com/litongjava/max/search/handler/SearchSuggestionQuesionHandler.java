@@ -47,7 +47,11 @@ public class SearchSuggestionQuesionHandler {
             stringBuffer.append("source url:").append(source.getMetadata().getUrl()).append("content:").append(pageContent).append("  \r\n");
           }
         }
-        chatMessages.add(new ChatMessage(role, stringBuffer.toString()));
+        String sourcesStr = stringBuffer.toString();
+        if (StrUtil.isNotBlank(sourcesStr)) {
+          chatMessages.add(new ChatMessage(role, sourcesStr));
+        }
+        
       }
       String content = searchChatMesageVo.getContent();
       if (StrUtil.isNotBlank(content)) {
