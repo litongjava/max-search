@@ -4,7 +4,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.max.search.services.MaxChatService;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
-import com.litongjava.max.search.vo.ChatWsRespVo;
+import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.tio.boot.http.TioRequestContext;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
@@ -51,13 +51,13 @@ public class ChatSSEHandler {
       } catch (Exception e) {
         log.error(e.getMessage(), e);
         if (vo.isSse()) {
-          ChatWsRespVo<String> error = ChatWsRespVo.error(e.getClass().toGenericString(), e.getMessage());
+          ChatDeltaRespVo<String> error = ChatDeltaRespVo.error(e.getClass().toGenericString(), e.getMessage());
           byte[] jsonBytes = FastJson2Utils.toJSONBytes(error);
           Tio.bSend(channelContext, new SsePacket(jsonBytes));
           SseEmitter.closeSeeConnection(channelContext);
 
         } else {
-          ChatWsRespVo<String> error = ChatWsRespVo.error(e.getClass().toGenericString(), e.getMessage());
+          ChatDeltaRespVo<String> error = ChatDeltaRespVo.error(e.getClass().toGenericString(), e.getMessage());
           WebSocketResponse packet = WebSocketResponse.fromJson(error);
           Tio.bSend(channelContext, packet);
 

@@ -10,7 +10,7 @@ import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.jian.search.JinaSearchClient;
 import com.litongjava.jian.search.JinaSearchRequest;
 import com.litongjava.max.search.consts.WebSiteNames;
-import com.litongjava.max.search.vo.ChatWsRespVo;
+import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.max.search.vo.WebPageSource;
 import com.litongjava.model.http.response.ResponseVo;
 import com.litongjava.model.web.WebPageContent;
@@ -76,7 +76,7 @@ public class WebSearchResponsePromptService {
     String markdown = searchResponse.getBodyString();
     if (!searchResponse.isOk()) {
       log.error(markdown);
-      ChatWsRespVo<String> error = ChatWsRespVo.error(markdown, messageId);
+      ChatDeltaRespVo<String> error = ChatDeltaRespVo.error(markdown, messageId);
       WebSocketResponse packet = WebSocketResponse.fromJson(error);
       if (channelContext != null) {
         Tio.bSend(channelContext, packet);
@@ -97,7 +97,7 @@ public class WebSearchResponsePromptService {
         sources.add(new WebPageSource(webPageConteont.getTitle(), webPageConteont.getUrl(), webPageConteont.getContent()));
       }
       //返回sources
-      ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
+      ChatDeltaRespVo<List<WebPageSource>> chatRespVo = new ChatDeltaRespVo<>();
       chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId);
       WebSocketResponse packet = WebSocketResponse.fromJson(chatRespVo);
       Tio.bSend(channelContext, packet);

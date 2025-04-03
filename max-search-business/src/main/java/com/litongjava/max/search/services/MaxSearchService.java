@@ -14,7 +14,7 @@ import com.litongjava.kit.PgObjectUtils;
 import com.litongjava.max.search.consts.OptimizationMode;
 import com.litongjava.max.search.vo.ChatParamVo;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
-import com.litongjava.max.search.vo.ChatWsRespVo;
+import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.max.search.vo.WebPageSource;
 import com.litongjava.model.web.WebPageContent;
 import com.litongjava.template.PromptEngine;
@@ -112,7 +112,7 @@ public class MaxSearchService {
       }
       sources.add(new WebPageSource("All Sources", host + "/sources/" + questionMessageId));
       // 返回 sources 数据给客户端
-      ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
+      ChatDeltaRespVo<List<WebPageSource>> chatRespVo = new ChatDeltaRespVo<>();
       chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId);
 
       // 通过 WebSocket or sse 返回搜索结果引用信息给客户端

@@ -8,7 +8,7 @@ import org.apache.commons.io.FileSystemUtils;
 import com.litongjava.max.search.callback.SearchDeepSeekSseCallback;
 import com.litongjava.max.search.vo.ChatParamVo;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
-import com.litongjava.max.search.vo.ChatWsRespVo;
+import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.openai.chat.OpenAiChatMessage;
 import com.litongjava.openai.chat.OpenAiChatRequestVo;
 import com.litongjava.openai.client.OpenAiClient;
@@ -69,7 +69,7 @@ public class DeepSeekPredictService {
     // log.info("chatRequestVo:{}",JsonUtils.toSkipNullJson(chatRequestVo));
     // 5. 向前端通知一个空消息，标识搜索结束，开始推理
     //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
-    ChatWsRespVo<String> chatVo = ChatWsRespVo.message(answerMessageId, "");
+    ChatDeltaRespVo<String> chatVo = ChatDeltaRespVo.message(answerMessageId, "");
     byte[] jsonBytes = FastJson2Utils.toJSONBytes(chatVo);
     if (channelContext != null) {
       if (reqMessageVo.isSse()) {

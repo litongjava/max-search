@@ -13,7 +13,7 @@ import com.litongjava.max.search.can.ChatWsStreamCallCan;
 import com.litongjava.max.search.model.MaxSearchChatMessage;
 import com.litongjava.max.search.vo.ChatParamVo;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
-import com.litongjava.max.search.vo.ChatWsRespVo;
+import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.http.common.sse.SsePacket;
@@ -52,7 +52,7 @@ public class SearchGeminiSseCallback implements Callback {
 
   @Override
   public void onFailure(Call call, IOException e) {
-    ChatWsRespVo<String> error = ChatWsRespVo.error("CHAT_ERROR", e.getMessage());
+    ChatDeltaRespVo<String> error = ChatDeltaRespVo.error("CHAT_ERROR", e.getMessage());
     byte[] jsonBytes = FastJson2Utils.toJSONBytes(error);
     if (reqVo.isSse()) {
       Tio.bSend(channelContext, new SsePacket(jsonBytes));
@@ -71,7 +71,7 @@ public class SearchGeminiSseCallback implements Callback {
       String string = response.body().string();
       String message = "Chat model response an unsuccessful message:" + string;
       log.error("message:{}", message);
-      ChatWsRespVo<String> data = ChatWsRespVo.error("STREAM_ERROR", message);
+      ChatDeltaRespVo<String> data = ChatDeltaRespVo.error("STREAM_ERROR", message);
       byte[] jsonBytes = FastJson2Utils.toJSONBytes(data);
       if (reqVo.isSse()) {
         Tio.bSend(channelContext, new SsePacket(jsonBytes));
@@ -85,7 +85,7 @@ public class SearchGeminiSseCallback implements Callback {
       if (responseBody == null) {
         String message = "response body is null";
         log.error(message);
-        ChatWsRespVo<String> data = ChatWsRespVo.progress(message);
+        ChatDeltaRespVo<String> data = ChatDeltaRespVo.progress(message);
         byte[] jsonBytes = FastJson2Utils.toJSONBytes(data);
         if (reqVo.isSse()) {
           Tio.bSend(channelContext, new SsePacket(jsonBytes));
@@ -160,7 +160,7 @@ public class SearchGeminiSseCallback implements Callback {
               String text = geminiPartVo.getText();
               if (text != null && !text.isEmpty()) {
                 completionContent.append(text);
-                ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, text);
+                ChatDeltaRespVo<String> vo = ChatDeltaRespVo.message(answerMessageId, text);
                 byte[] jsonBytes = FastJson2Utils.toJSONBytes(vo);
                 if (reqVo.isSse()) {
                   Tio.bSend(channelContext, new SsePacket(jsonBytes));

@@ -6,7 +6,7 @@ import com.litongjava.max.search.consts.WebSiteNames;
 import com.litongjava.max.search.services.MaxChatService;
 import com.litongjava.max.search.vo.ChatSignalVo;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
-import com.litongjava.max.search.vo.ChatWsRespVo;
+import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.http.common.HttpRequest;
@@ -100,7 +100,7 @@ public class ChatWebSocketHandler implements IWebSocketHandler {
         Aop.get(MaxChatService.class).dispatch(channelContext, vo);
       } catch (Exception e) {
         log.error(e.getMessage(), e);
-        ChatWsRespVo<String> error = ChatWsRespVo.error(e.getClass().toGenericString(), e.getMessage());
+        ChatDeltaRespVo<String> error = ChatDeltaRespVo.error(e.getClass().toGenericString(), e.getMessage());
         WebSocketResponse packet = WebSocketResponse.fromJson(error);
         Tio.bSend(channelContext, packet);
       }

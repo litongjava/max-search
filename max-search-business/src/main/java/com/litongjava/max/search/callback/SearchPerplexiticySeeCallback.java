@@ -7,7 +7,7 @@ import com.jfinal.kit.Kv;
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.max.search.can.ChatWsStreamCallCan;
 import com.litongjava.max.search.services.WebpageSourceService;
-import com.litongjava.max.search.vo.ChatWsRespVo;
+import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.max.search.vo.WebPageSource;
 import com.litongjava.openai.chat.ChatResponseDelta;
 import com.litongjava.openai.chat.Choice;
@@ -42,7 +42,7 @@ public class SearchPerplexiticySeeCallback implements Callback {
 
   @Override
   public void onFailure(Call call, IOException e) {
-    ChatWsRespVo<String> error = ChatWsRespVo.error("CHAT_ERROR", e.getMessage());
+    ChatDeltaRespVo<String> error = ChatDeltaRespVo.error("CHAT_ERROR", e.getMessage());
     WebSocketResponse packet = WebSocketResponse.fromJson(error);
     Tio.bSend(channelContext, packet);
     ChatWsStreamCallCan.remove(chatId);
@@ -54,7 +54,7 @@ public class SearchPerplexiticySeeCallback implements Callback {
     if (!response.isSuccessful()) {
       String message = "Chat model response an unsuccessful message:" + response.body().string();
       log.error("message:{}", message);
-      ChatWsRespVo<String> data = ChatWsRespVo.error("STREAM_ERROR", message);
+      ChatDeltaRespVo<String> data = ChatDeltaRespVo.error("STREAM_ERROR", message);
       WebSocketResponse webSocketResponse = WebSocketResponse.fromJson(data);
       Tio.bSend(channelContext, webSocketResponse);
       return;
@@ -64,7 +64,7 @@ public class SearchPerplexiticySeeCallback implements Callback {
       if (responseBody == null) {
         String message = "response body is null";
         log.error(message);
-        ChatWsRespVo<String> data = ChatWsRespVo.progress(message);
+        ChatDeltaRespVo<String> data = ChatDeltaRespVo.progress(message);
         WebSocketResponse webSocketResponse = WebSocketResponse.fromJson(data);
         Tio.bSend(channelContext, webSocketResponse);
         return;
@@ -119,7 +119,7 @@ public class SearchPerplexiticySeeCallback implements Callback {
           List<String> citations = chatResponse.getCitations();
           if (citations != null && !sentCitations) {
             List<WebPageSource> sources = Aop.get(WebpageSourceService.class).getList(citations);
-            ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
+            ChatDeltaRespVo<List<WebPageSource>> chatRespVo = new ChatDeltaRespVo<>();
             chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId);
             WebSocketResponse packet = WebSocketResponse.fromJson(chatRespVo);
             Tio.bSend(channelContext, packet);
@@ -136,7 +136,7 @@ public class SearchPerplexiticySeeCallback implements Callback {
             String part = delta.getContent();
             if (part != null && !part.isEmpty()) {
               completionContent.append(part);
-              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, part);
+              ChatDeltaRespVo<String> vo = ChatDeltaRespVo.message(answerMessageId, part);
               Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
             }
           }

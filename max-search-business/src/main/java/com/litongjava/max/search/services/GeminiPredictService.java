@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.alibaba.druid.support.json.JSONUtils;
 import com.litongjava.gemini.GeminiChatRequestVo;
 import com.litongjava.gemini.GeminiChatResponseVo;
 import com.litongjava.gemini.GeminiClient;
@@ -16,10 +17,12 @@ import com.litongjava.max.search.callback.SearchGeminiSseCallback;
 import com.litongjava.max.search.consts.FocusMode;
 import com.litongjava.max.search.vo.ChatParamVo;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
-import com.litongjava.max.search.vo.ChatWsRespVo;
+import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.openai.chat.ChatMessage;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
+import com.litongjava.tio.http.common.sse.SsePacket;
+import com.litongjava.tio.utils.json.FastJson2Utils;
 import com.litongjava.tio.utils.json.JsonUtils;
 import com.litongjava.tio.websocket.common.WebSocketResponse;
 
@@ -87,12 +90,24 @@ public class GeminiPredictService {
 
     // 5. 向前端通知一个空消息，标识搜索结束，开始推理
     //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
-    ChatWsRespVo<String> chatVo = ChatWsRespVo.message(answerMessageId, "");
-    WebSocketResponse websocketResponse = WebSocketResponse.fromJson(chatVo);
+    ChatDeltaRespVo<String> chatVo = ChatDeltaRespVo.message(answerMessageId, "");
+    byte[] jsonBytes = FastJson2Utils.toJSONBytes(chatVo);
+    
+    ChatDeltaRespVo<String> greeting = ChatDeltaRespVo.message(answerMessageId, "let me answer the user's question.");
+    byte[] greetingBytes = FastJson2Utils.toJSONBytes(greeting);
+    
     if (channelContext != null) {
-      Tio.bSend(channelContext, websocketResponse);
+      if (reqMessageVo.isSse()) {
+        Tio.bSend(channelContext, new SsePacket(jsonBytes));
+        Tio.bSend(channelContext, new SsePacket(greetingBytes));
+
+      } else {
+        Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+        Tio.bSend(channelContext, new WebSocketResponse(greetingBytes));
+      }
     }
     long start = System.currentTimeMillis();
+
     // 6. 流式/一次性获取结果
     Call call = null;
     if (channelContext != null) {

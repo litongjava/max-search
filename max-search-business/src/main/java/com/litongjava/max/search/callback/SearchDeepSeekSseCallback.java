@@ -8,7 +8,7 @@ import com.litongjava.max.search.can.ChatWsStreamCallCan;
 import com.litongjava.max.search.model.MaxSearchChatMessage;
 import com.litongjava.max.search.vo.ChatParamVo;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
-import com.litongjava.max.search.vo.ChatWsRespVo;
+import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.openai.chat.ChatResponseDelta;
 import com.litongjava.openai.chat.ChatResponseUsage;
 import com.litongjava.openai.chat.Choice;
@@ -50,7 +50,7 @@ public class SearchDeepSeekSseCallback implements Callback {
 
   @Override
   public void onFailure(Call call, IOException e) {
-    ChatWsRespVo<String> error = ChatWsRespVo.error("CHAT_ERROR", e.getMessage());
+    ChatDeltaRespVo<String> error = ChatDeltaRespVo.error("CHAT_ERROR", e.getMessage());
     byte[] jsonBytes = FastJson2Utils.toJSONBytes(error);
     if (reqVo.isSse()) {
       Tio.bSend(channelContext, new SsePacket(jsonBytes));
@@ -70,7 +70,7 @@ public class SearchDeepSeekSseCallback implements Callback {
       String string = response.body().string();
       String message = "Chat model response an unsuccessful message:" + string;
       log.error("message:{}", message);
-      ChatWsRespVo<String> data = ChatWsRespVo.error("STREAM_ERROR", message);
+      ChatDeltaRespVo<String> data = ChatDeltaRespVo.error("STREAM_ERROR", message);
       byte[] jsonBytes = FastJson2Utils.toJSONBytes(data);
       if (reqVo.isSse()) {
         Tio.bSend(channelContext, new SsePacket(jsonBytes));
@@ -84,7 +84,7 @@ public class SearchDeepSeekSseCallback implements Callback {
       if (responseBody == null) {
         String message = "response body is null";
         log.error(message);
-        ChatWsRespVo<String> data = ChatWsRespVo.progress(message);
+        ChatDeltaRespVo<String> data = ChatDeltaRespVo.progress(message);
         byte[] jsonBytes = FastJson2Utils.toJSONBytes(data);
         if (reqVo.isSse()) {
           Tio.bSend(channelContext, new SsePacket(jsonBytes));
@@ -158,7 +158,7 @@ public class SearchDeepSeekSseCallback implements Callback {
             
             String reasoning_content = delta.getReasoning_content();
             if (reasoning_content != null && !reasoning_content.isEmpty()) {
-              ChatWsRespVo<String> vo = ChatWsRespVo.reasoning(answerMessageId, reasoning_content);
+              ChatDeltaRespVo<String> vo = ChatDeltaRespVo.reasoning(answerMessageId, reasoning_content);
               byte[] jsonBytes = FastJson2Utils.toJSONBytes(vo);
               if (reqVo.isSse()) {
                 Tio.bSend(channelContext, new SsePacket(jsonBytes));
@@ -171,7 +171,7 @@ public class SearchDeepSeekSseCallback implements Callback {
             String part = delta.getContent();
             if (part != null && !part.isEmpty()) {
               completionContent.append(part);
-              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, part);
+              ChatDeltaRespVo<String> vo = ChatDeltaRespVo.message(answerMessageId, part);
               byte[] jsonBytes = FastJson2Utils.toJSONBytes(vo);
               if (reqVo.isSse()) {
                 Tio.bSend(channelContext, new SsePacket(jsonBytes));
@@ -182,7 +182,7 @@ public class SearchDeepSeekSseCallback implements Callback {
         
           }
         } else if (": keep-alive".equals(line)) {
-          ChatWsRespVo<String> vo = ChatWsRespVo.keepAlive(answerMessageId);
+          ChatDeltaRespVo<String> vo = ChatDeltaRespVo.keepAlive(answerMessageId);
           byte[] jsonBytes = FastJson2Utils.toJSONBytes(vo);
           if (reqVo.isSse()) {
 

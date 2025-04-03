@@ -23,7 +23,7 @@ import com.litongjava.max.search.model.MaxSearchChatSession;
 import com.litongjava.max.search.vo.ChatParamVo;
 import com.litongjava.max.search.vo.ChatReqMessage;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
-import com.litongjava.max.search.vo.ChatWsRespVo;
+import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.max.search.vo.CitationsVo;
 import com.litongjava.max.search.vo.WebPageSource;
 import com.litongjava.model.web.WebPageContent;
@@ -146,7 +146,7 @@ public class MaxChatService {
     } else {
       // 5. 向前端通知一个空消息，标识搜索结束，开始推理
       //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
-      ChatWsRespVo<String> chatVo = ChatWsRespVo.message(answerMessageId, "");
+      ChatDeltaRespVo<String> chatVo = ChatDeltaRespVo.message(answerMessageId, "");
       byte[] jsonBytes = FastJson2Utils.toJSONBytes(chatVo);
 
       if (channelContext != null) {
@@ -157,7 +157,7 @@ public class MaxChatService {
         }
       }
 
-      chatVo = ChatWsRespVo.message(answerMessageId, "Sorry Developing");
+      chatVo = ChatDeltaRespVo.message(answerMessageId, "Sorry Developing");
       jsonBytes = FastJson2Utils.toJSONBytes(chatVo);
       if (channelContext != null) {
         if (reqMessageVo.isSse()) {
@@ -218,9 +218,9 @@ public class MaxChatService {
       //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
 
       if (channelContext != null) {
-        ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, "");
+        ChatDeltaRespVo<String> vo = ChatDeltaRespVo.message(answerMessageId, "");
         Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
-        vo = ChatWsRespVo.message(messageId, "Sorry,not found");
+        vo = ChatDeltaRespVo.message(messageId, "Sorry,not found");
         log.info("not found:{}", content);
         Tio.bSend(channelContext, WebSocketResponse.fromJson(vo));
       }
@@ -238,7 +238,7 @@ public class MaxChatService {
     if (citationList.size() > 0) {
 
       List<WebPageSource> sources = webpageSourceService.getListWithCitationsVo(citationList);
-      ChatWsRespVo<List<WebPageSource>> chatRespVo = new ChatWsRespVo<>();
+      ChatDeltaRespVo<List<WebPageSource>> chatRespVo = new ChatDeltaRespVo<>();
       chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId);
       byte[] jsonBytes = FastJson2Utils.toJSONBytes(chatRespVo);
       if (channelContext != null) {
@@ -251,7 +251,7 @@ public class MaxChatService {
     }
 
     //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
-    ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, "");
+    ChatDeltaRespVo<String> vo = ChatDeltaRespVo.message(answerMessageId, "");
     byte[] jsonBytes = FastJson2Utils.toJSONBytes(vo);
     if (channelContext != null) {
       if (isSSE) {

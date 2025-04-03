@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import com.litongjava.max.search.vo.ChatWsRespVo;
+import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.max.search.vo.CitationsVo;
 import com.litongjava.maxkb.playwright.PlaywrightBrowser;
 import com.litongjava.tio.core.ChannelContext;
@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SpiderService {
 
   public StringBuffer spider(ChannelContext channelContext, long answerMessageId, List<CitationsVo> citationList) {
-    ChatWsRespVo<String> vo;
+    ChatDeltaRespVo<String> vo;
     WebSocketResponse websocketResponse;
     //5.获取内容
     StringBuffer pageContents = new StringBuffer();
@@ -37,7 +37,7 @@ public class SpiderService {
           bodyText = PlaywrightBrowser.getBodyContent(link);
         } catch (Exception e) {
           log.error(e.getMessage(), e);
-          vo = ChatWsRespVo.message(answerMessageId, "Error Failed to get " + link + " " + e.getMessage());
+          vo = ChatDeltaRespVo.message(answerMessageId, "Error Failed to get " + link + " " + e.getMessage());
           websocketResponse = WebSocketResponse.fromJson(vo);
           if (channelContext != null) {
             Tio.bSend(channelContext, websocketResponse);
@@ -70,7 +70,7 @@ public class SpiderService {
             return "source " + (index + 1) + " " + bodyText + "\n\n";
           } catch (Exception e) {
             log.error("Error getting content from {}: {}", link, e.getMessage(), e);
-            ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, "Error Failed to get " + link + " " + e.getMessage());
+            ChatDeltaRespVo<String> vo = ChatDeltaRespVo.message(answerMessageId, "Error Failed to get " + link + " " + e.getMessage());
             WebSocketResponse websocketResponse = WebSocketResponse.fromJson(vo);
             if (channelContext != null) {
               Tio.bSend(channelContext, websocketResponse);
