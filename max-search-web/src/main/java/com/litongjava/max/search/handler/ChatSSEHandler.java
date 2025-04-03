@@ -35,7 +35,7 @@ public class ChatSSEHandler {
     String type = reqJsonObject.getString("type");
     if ("message".equals(type)) {
       ChatWsReqMessageVo vo = FastJson2Utils.parse(text, ChatWsReqMessageVo.class);
-      vo.setCopilotEnabled(null);
+      vo.setSse(true);
       vo.setFocusMode("rag");
       vo.setDomain("kapiolani");
       log.info("message:{}", text);

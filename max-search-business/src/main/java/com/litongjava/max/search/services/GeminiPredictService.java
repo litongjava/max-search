@@ -64,7 +64,7 @@ public class GeminiPredictService {
     GeminiChatRequestVo reqVo = new GeminiChatRequestVo(contents);
     // 2. 将 Prompt 塞到 role = "model" 的内容中
     String focusMode = reqMessageVo.getFocusMode();
-    if (FocusMode.webSearch.equals(focusMode)) {
+    if (FocusMode.webSearch.equals(focusMode) || FocusMode.rag.equals(focusMode)) {
       if (inputPrompt != null) {
         GeminiPartVo part = new GeminiPartVo(inputPrompt);
         GeminiContentVo system = new GeminiContentVo("model", Collections.singletonList(part));
