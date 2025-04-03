@@ -8,6 +8,7 @@ import com.litongjava.gemini.GeminiCandidateVo;
 import com.litongjava.gemini.GeminiChatResponseVo;
 import com.litongjava.gemini.GeminiContentResponseVo;
 import com.litongjava.gemini.GeminiPartVo;
+import com.litongjava.gemini.GeminiUsageMetadataVo;
 import com.litongjava.max.search.can.ChatWsStreamCallCan;
 import com.litongjava.max.search.model.MaxSearchChatMessage;
 import com.litongjava.max.search.vo.ChatParamVo;
@@ -18,6 +19,7 @@ import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.http.common.sse.SsePacket;
 import com.litongjava.tio.http.server.util.SseEmitter;
 import com.litongjava.tio.utils.json.FastJson2Utils;
+import com.litongjava.tio.utils.json.JsonUtils;
 import com.litongjava.tio.websocket.common.WebSocketResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,7 @@ public class SearchGeminiSseCallback implements Callback {
   private long start;
   private Long sessionId;
   private long answerMessageId;
+  private GeminiUsageMetadataVo usageMetadata;
 
   public SearchGeminiSseCallback(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo, ChatParamVo chatParamVo,
       //
@@ -107,7 +110,7 @@ public class SearchGeminiSseCallback implements Callback {
 
       // 关闭连接
       long endTime = System.currentTimeMillis();
-      log.info("finish llm in {} (ms)", (endTime - start));
+      log.info("finish llm in {} (ms),tokens:{}", (endTime - start),JsonUtils.toSkipNullJson(usageMetadata));
 
       //log.info("completionContent:{}", completionContent);
       if (completionContent != null && !completionContent.toString().isEmpty()) {
@@ -146,6 +149,7 @@ public class SearchGeminiSseCallback implements Callback {
         String data = line.substring(6);
         if (data.endsWith("}")) {
           GeminiChatResponseVo chatResponse = FastJson2Utils.parse(data, GeminiChatResponseVo.class);
+          usageMetadata = chatResponse.getUsageMetadata();
 
           List<GeminiCandidateVo> candidates = chatResponse.getCandidates();
           if (!candidates.isEmpty()) {
