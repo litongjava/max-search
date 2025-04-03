@@ -50,7 +50,9 @@ public class SearchSuggestionQuesionHandler {
         chatMessages.add(new ChatMessage(role, stringBuffer.toString()));
       }
       String content = searchChatMesageVo.getContent();
-      chatMessages.add(new ChatMessage(role, content));
+      if (StrUtil.isNotBlank(content)) {
+        chatMessages.add(new ChatMessage(role, content));
+      }
     }
 
     String generated = Aop.get(SearchSuggestionQuesionService.class).generate(chatMessages);

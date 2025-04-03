@@ -100,8 +100,7 @@ public class MaxSearchService {
       List<WebPageSource> sources = new ArrayList<>();
 
       for (WebPageContent webPageConteont : webPageContents) {
-        //webPageConteont.getContent();
-        sources.add(new WebPageSource(webPageConteont.getTitle(), webPageConteont.getUrl()));
+        sources.add(new WebPageSource(webPageConteont.getTitle(), webPageConteont.getUrl(), webPageConteont.getContent()));
       }
 
       String host = channelContext.getString(RequestHeaderKey.Host);

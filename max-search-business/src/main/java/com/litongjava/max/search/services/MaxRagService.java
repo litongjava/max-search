@@ -83,8 +83,8 @@ public class MaxRagService {
       List<WebPageSource> sources = new ArrayList<>();
 
       for (WebPageContent webPageConteont : webPageContents) {
-        //webPageConteont.getContent()
-        sources.add(new WebPageSource(webPageConteont.getTitle(), webPageConteont.getUrl()));
+        //
+        sources.add(new WebPageSource(webPageConteont.getTitle(), webPageConteont.getUrl(), webPageConteont.getContent()));
       }
 
       String host = reqMessageVo.getHost();
