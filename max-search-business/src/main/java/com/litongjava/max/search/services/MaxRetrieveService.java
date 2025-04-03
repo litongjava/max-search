@@ -43,7 +43,12 @@ public class MaxRetrieveService {
       if (!mergedMap.containsKey(paragraphId)) {
         WebPageContent pageContent = new WebPageContent();
         pageContent.setTitle(vo.getDocument_name());
-        pageContent.setUrl(vo.getDocument_url());
+        String document_url = vo.getDocument_url();
+        if (document_url != null && !document_url.startsWith("http")) {
+          pageContent.setUrl("https://" + document_url);
+        } else {
+          pageContent.setUrl(document_url);
+        }
         pageContent.setDescription(vo.getDataset_name());
         // 从批量查询的结果中获取内容
         String fullContent = paragraphContentMap.get(paragraphId);
