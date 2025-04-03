@@ -50,7 +50,7 @@ public class SearxngSearchVectorMultiThreadService {
       String url = searxngResult.getUrl();
       // 将搜索结果的 content 赋值到 description 字段
       String description = searxngResult.getContent();
-      WebPageContent wpc = new WebPageContent(title, url, description, null, null);
+      WebPageContent wpc = new WebPageContent(title, url, description);
       webPageContents.add(wpc);
       if (description != null && !description.trim().isEmpty()) {
         String md5 = Md5Utils.getMD5(description);

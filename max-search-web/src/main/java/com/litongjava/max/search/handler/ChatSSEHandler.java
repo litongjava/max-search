@@ -24,6 +24,9 @@ public class ChatSSEHandler {
     HttpResponse response = TioRequestContext.getResponse();
     CORSUtils.enableCORS(response);
     ChannelContext channelContext = request.getChannelContext();
+    String host = request.getHost();
+    String origin = request.getOrigin();
+
     // 设置sse请求头
     response.addServerSentEventsHeader();
     // 手动发送消息到客户端,因为已经设置了sse的请求头,所以客户端的连接不会关闭
@@ -36,8 +39,11 @@ public class ChatSSEHandler {
     if ("message".equals(type)) {
       ChatWsReqMessageVo vo = FastJson2Utils.parse(text, ChatWsReqMessageVo.class);
       vo.setSse(true);
-      vo.setFocusMode("rag");
-      vo.setDomain("kapiolani");
+      vo.setHost(host);
+      if (origin != null && origin.equals("https://kapiolani.ai")) {
+        vo.setFocusMode("rag");
+        vo.setDomain("kapiolani.hawaii.edu");
+      }
       log.info("message:{}", text);
       try {
         Aop.get(MaxChatService.class).dispatch(channelContext, vo);

@@ -18,6 +18,7 @@ public class ChatWsReqMessageVo {
   private String domain;
   private Boolean copilotEnabled;
   private String optimizationMode;
+  private String host;
   private List<List<String>> history;
   private boolean sse;
 }

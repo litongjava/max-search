@@ -35,7 +35,7 @@ public class SearxngSearchVectorService {
       String title = searxngResult.getTitle();
       String url = searxngResult.getUrl();
       // 此处将搜索结果的 content 赋值到 description 字段
-      webPageContents.add(new WebPageContent(title, url, searxngResult.getContent(), null, null));
+      webPageContents.add(new WebPageContent(title, url, searxngResult.getContent()));
     }
 
     // 2. 获取问题的向量

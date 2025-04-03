@@ -3,7 +3,6 @@ package com.litongjava.college.hawaii.kapiolani;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.litongjava.db.SqlPara;
 import com.litongjava.db.activerecord.Db;
 import com.litongjava.db.activerecord.Row;
 import com.litongjava.jfinal.aop.Aop;

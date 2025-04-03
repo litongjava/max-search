@@ -84,7 +84,7 @@ public class MaxRagService {
         sources.add(new WebPageSource(webPageConteont.getTitle(), webPageConteont.getUrl(), webPageConteont.getContent()));
       }
 
-      String host = channelContext.getString(RequestHeaderKey.Host);
+      String host = reqMessageVo.getHost();
       if (host == null) {
         host = "//127.0.0.1";
       } else {
