@@ -20,8 +20,8 @@ import com.litongjava.model.web.WebPageContent;
 import com.litongjava.template.PromptEngine;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
-import com.litongjava.tio.http.common.RequestHeaderKey;
 import com.litongjava.tio.http.common.sse.SsePacket;
+import com.litongjava.tio.utils.SystemTimer;
 import com.litongjava.tio.utils.hutool.StrUtil;
 import com.litongjava.tio.utils.json.FastJson2Utils;
 import com.litongjava.tio.websocket.common.WebSocketResponse;
@@ -56,8 +56,10 @@ public class MaxRagService {
       } else {
         quesiton = content;
       }
-
+      long startTime = SystemTimer.currTime;
       List<WebPageContent> webPageContents = maxRetrieveService.search(quesiton);
+      long endTime = SystemTimer.currTime;
+      log.info("retrived {} elapsed:{}", quesiton, (endTime - startTime) + "(ms)");
 
       // 根据优化模式对搜索结果进行处理
       JinaReaderService jinaReaderService = Aop.get(JinaReaderService.class);
