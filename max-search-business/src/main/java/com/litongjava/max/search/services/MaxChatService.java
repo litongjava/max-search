@@ -89,16 +89,18 @@ public class MaxChatService {
     chatParamVo.setHistory(history);
 
     if (content.length() > 30 || history.size() > 0) {
-      String rewrited = Aop.get(RewriteQuestionService.class).rewrite(content, history);
-      log.info("rewrite to:{}", rewrited);
-      chatParamVo.setRewrited(rewrited);
-      if (channelContext != null) {
-        Kv end = Kv.by("type", "rewrited").set("content", rewrited);
-        byte[] jsonBytes = FastJson2Utils.toJSONBytes(end);
-        if (reqMessageVo.isSse()) {
-          Tio.bSend(channelContext, new SsePacket(jsonBytes));
-        } else {
-          Tio.bSend(channelContext, WebSocketResponse.fromBytes(jsonBytes));
+      if (!content.startsWith("Summary: http")) {
+        String rewrited = Aop.get(RewriteQuestionService.class).rewrite(content, history);
+        log.info("rewrite to:{}", rewrited);
+        chatParamVo.setRewrited(rewrited);
+        if (channelContext != null) {
+          Kv end = Kv.by("type", "rewrited").set("content", rewrited);
+          byte[] jsonBytes = FastJson2Utils.toJSONBytes(end);
+          if (reqMessageVo.isSse()) {
+            Tio.bSend(channelContext, new SsePacket(jsonBytes));
+          } else {
+            Tio.bSend(channelContext, WebSocketResponse.fromBytes(jsonBytes));
+          }
         }
       }
     }

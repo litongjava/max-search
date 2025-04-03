@@ -151,16 +151,18 @@ public class SearchGeminiSseCallback implements Callback {
           if (!candidates.isEmpty()) {
             GeminiContentResponseVo content = candidates.get(0).getContent();
             List<GeminiPartVo> parts = content.getParts();
-            GeminiPartVo geminiPartVo = parts.get(0);
-            String text = geminiPartVo.getText();
-            if (text != null && !text.isEmpty()) {
-              completionContent.append(text);
-              ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, text);
-              byte[] jsonBytes = FastJson2Utils.toJSONBytes(vo);
-              if (reqVo.isSse()) {
-                Tio.bSend(channelContext, new SsePacket(jsonBytes));
-              } else {
-                Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+            if (parts != null) {
+              GeminiPartVo geminiPartVo = parts.get(0);
+              String text = geminiPartVo.getText();
+              if (text != null && !text.isEmpty()) {
+                completionContent.append(text);
+                ChatWsRespVo<String> vo = ChatWsRespVo.message(answerMessageId, text);
+                byte[] jsonBytes = FastJson2Utils.toJSONBytes(vo);
+                if (reqVo.isSse()) {
+                  Tio.bSend(channelContext, new SsePacket(jsonBytes));
+                } else {
+                  Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+                }
               }
             }
           }

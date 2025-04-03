@@ -121,7 +121,7 @@ public class MaxRagService {
       String isoTimeStr = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
       Kv kv = Kv.by("date", isoTimeStr).set("context", markdown);
       inputPrompt = PromptEngine.renderToString("WebSearchResponsePrompt.txt", kv);
-      log.info("deepkseek:{}", inputPrompt);
+      //log.info("SystemPrompt:{}", inputPrompt);
     }
     chatParamVo.setSystemPrompt(inputPrompt);
     return predictService.predict(channelContext, reqMessageVo, chatParamVo);

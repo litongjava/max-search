@@ -26,6 +26,7 @@ public class ChatSSEHandler {
     ChannelContext channelContext = request.getChannelContext();
     String host = request.getHost();
     String origin = request.getOrigin();
+    log.info("host:{},origin:{}", host, origin);
 
     // 设置sse请求头
     response.addServerSentEventsHeader();
@@ -40,7 +41,7 @@ public class ChatSSEHandler {
       ChatWsReqMessageVo vo = FastJson2Utils.parse(text, ChatWsReqMessageVo.class);
       vo.setSse(true);
       vo.setHost(host);
-      if (origin != null && origin.equals("https://kapiolani.ai")) {
+      if (origin != null && origin.contains("kapiolani.ai")) {
         vo.setFocusMode("rag");
         vo.setDomain("kapiolani.hawaii.edu");
       }

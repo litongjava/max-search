@@ -15,16 +15,15 @@ public class ApiDiscoverController {
   public DiscoverResultVo index() {
     List<WebPageContent> blogs=new ArrayList<>();
     WebPageContent webPageContent = new WebPageContent()
-        .setUrl("https://www.yahoo.com/tech/chinese-research-team-makes-game-103007466.html")
+        .setUrl("https://www.kapiolani.hawaii.edu/event-directory/summer-session-2025/")
         //
-        .setTitle("Chinese research team makes game-changing breakthrough with floating solar tech: 'Our work made significant progress")
+        .setTitle("Kapiʻolani CC Summer Session: Save Money, Graduate Faster!")
         //
-        .setThumbnail("https://www.bing.com//th?id=OVFT.J2ES8dqSTKgpQ0RBA2V0XC&pid=News&w=234&h=132&c=14&rs=2&qlt=90")
+        .setThumbnail("https://www.kapiolani.hawaii.edu/wp-content/uploads/studentgreatlawn2025_1920.jpg")
         //
-        .setContent("Our work made significant progress in understanding the hydrodynamic responses of a novel offshore floating photovoltaic ...");
+        .setContent("Summer is the perfect time to fast-track your education and save money! ...");
     blogs.add(webPageContent);
     DiscoverResultVo discoverResultVo = new DiscoverResultVo(blogs);
     return discoverResultVo;
-    
   }
 }

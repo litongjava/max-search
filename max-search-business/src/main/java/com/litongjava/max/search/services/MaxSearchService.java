@@ -65,8 +65,18 @@ public class MaxSearchService {
         quesiton = content;
       }
 
+      List<WebPageContent> webPageContents = null;
       // 使用 MaxSearchSearchService 对 Tavily Search API 进行调用
-      List<WebPageContent> webPageContents = maxSearchSearchService.search(quesiton);
+      if (quesiton != null && quesiton.startsWith("Summary: ")) {
+        webPageContents = new ArrayList<>(1);
+        String[] split = quesiton.split(" ");
+        if (split.length > 1 && split[1].startsWith("http")) {
+          WebPageContent webpageContent = Aop.get(MaxWebPageService.class).fetch(split[1]);
+          webPageContents.add(webpageContent);
+        }
+      } else {
+        webPageContents = maxSearchSearchService.search(quesiton);
+      }
 
       // 根据优化模式对搜索结果进行处理
       JinaReaderService jinaReaderService = Aop.get(JinaReaderService.class);
@@ -130,7 +140,6 @@ public class MaxSearchService {
       String isoTimeStr = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
       Kv kv = Kv.by("date", isoTimeStr).set("context", markdown);
       inputPrompt = PromptEngine.renderToString("WebSearchResponsePrompt.txt", kv);
-      log.info("deepkseek:{}", inputPrompt);
     }
     chatParamVo.setSystemPrompt(inputPrompt);
     return predictService.predict(channelContext, reqMessageVo, chatParamVo);
