@@ -51,7 +51,7 @@ public class SearchSuggestionQuesionHandler {
         if (StrUtil.isNotBlank(sourcesStr)) {
           chatMessages.add(new ChatMessage(role, sourcesStr));
         }
-        
+
       }
       String content = searchChatMesageVo.getContent();
       if (StrUtil.isNotBlank(content)) {
@@ -61,7 +61,8 @@ public class SearchSuggestionQuesionHandler {
 
     String generated = Aop.get(SearchSuggestionQuesionService.class).generate(chatMessages);
     if (generated != null) {
-      response.setString(generated, null, MimeType.TEXT_PLAIN_JSON.toString());
+      String charset = "utf-8";
+      response.setString(generated, charset, MimeType.TEXT_PLAIN_JSON.toString() + ";charset=" + charset);
     }
     return response;
   }
