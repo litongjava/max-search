@@ -90,22 +90,17 @@ public class GeminiPredictService {
 
     // 5. 向前端通知一个空消息，标识搜索结束，开始推理
     //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
-    ChatDeltaRespVo<String> chatVo = ChatDeltaRespVo.message(answerMessageId, "");
-    byte[] jsonBytes = FastJson2Utils.toJSONBytes(chatVo);
+//    ChatDeltaRespVo<String> chatVo = ChatDeltaRespVo.message(answerMessageId, "");
+//    byte[] jsonBytes = FastJson2Utils.toJSONBytes(chatVo);
+//    if (channelContext != null) {
+//      if (reqMessageVo.isSse()) {
+//        Tio.bSend(channelContext, new SsePacket(jsonBytes));
+//
+//      } else {
+//        Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+//      }
+//    }
     
-    ChatDeltaRespVo<String> greeting = ChatDeltaRespVo.reasoning(answerMessageId, "let me answer the user's question.");
-    byte[] greetingBytes = FastJson2Utils.toJSONBytes(greeting);
-    
-    if (channelContext != null) {
-      if (reqMessageVo.isSse()) {
-        Tio.bSend(channelContext, new SsePacket(jsonBytes));
-        Tio.bSend(channelContext, new SsePacket(greetingBytes));
-
-      } else {
-        Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
-        Tio.bSend(channelContext, new WebSocketResponse(greetingBytes));
-      }
-    }
     long start = System.currentTimeMillis();
 
     // 6. 流式/一次性获取结果

@@ -30,8 +30,6 @@ public class RewriteQuestionService {
     values.put("query", question);
     String prompt = template.renderToString(values);
 
-    log.info("prompt:{}", prompt);
-
     // 2.大模型推理
     //String content = openAi(prompt);
     String content = gemini(prompt);

@@ -20,10 +20,10 @@ import com.litongjava.max.search.consts.FocusMode;
 import com.litongjava.max.search.consts.SearchTableNames;
 import com.litongjava.max.search.model.MaxSearchChatMessage;
 import com.litongjava.max.search.model.MaxSearchChatSession;
+import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.max.search.vo.ChatParamVo;
 import com.litongjava.max.search.vo.ChatReqMessage;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
-import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.max.search.vo.CitationsVo;
 import com.litongjava.max.search.vo.WebPageSource;
 import com.litongjava.model.web.WebPageContent;
@@ -62,18 +62,29 @@ public class MaxChatService {
    * 使用搜索模型处理消息
   */
   public void dispatch(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo) {
-    
+
     long answerMessageId = SnowflakeIdUtils.id();
-    
+
     ChatReqMessage message = reqMessageVo.getMessage();
     Long userId = reqMessageVo.getUserId();
     Long sessionId = message.getChatId();
     Long messageQuestionId = message.getMessageId();
     String content = message.getContent();
 
+    ChatDeltaRespVo<String> chatVo = ChatDeltaRespVo.message(answerMessageId, "");
+    byte[] jsonBytes = FastJson2Utils.toJSONBytes(chatVo);
+    if (channelContext != null) {
+      if (reqMessageVo.isSse()) {
+        Tio.bSend(channelContext, new SsePacket(jsonBytes));
+
+      } else {
+        Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
+      }
+    }
+
     ChatDeltaRespVo<String> greeting = ChatDeltaRespVo.reasoning(answerMessageId, "Let me think about the user's question.");
     byte[] greetingBytes = FastJson2Utils.toJSONBytes(greeting);
-    
+
     if (channelContext != null) {
       if (reqMessageVo.isSse()) {
         Tio.bSend(channelContext, new SsePacket(greetingBytes));
@@ -82,7 +93,7 @@ public class MaxChatService {
         Tio.bSend(channelContext, new WebSocketResponse(greetingBytes));
       }
     }
-    
+
     ChatParamVo chatParamVo = new ChatParamVo();
     chatParamVo.setAnswerMessageId(answerMessageId);
     // create chat or save message
@@ -111,7 +122,7 @@ public class MaxChatService {
         chatParamVo.setRewrited(rewrited);
         if (channelContext != null) {
           Kv end = Kv.by("type", "rewrited").set("content", rewrited);
-          byte[] jsonBytes = FastJson2Utils.toJSONBytes(end);
+          jsonBytes = FastJson2Utils.toJSONBytes(end);
           if (reqMessageVo.isSse()) {
             Tio.bSend(channelContext, new SsePacket(jsonBytes));
           } else {
@@ -131,7 +142,6 @@ public class MaxChatService {
 
     Boolean copilotEnabled = reqMessageVo.getCopilotEnabled();
     Call call = null;
-    
 
     log.info("focusMode:{},{}", userId, focusMode);
     if (FocusMode.webSearch.equals(focusMode)) {
@@ -159,19 +169,6 @@ public class MaxChatService {
       chatParamVo.setSystemPrompt(inputPrompt);
       Aop.get(DeepSeekPredictService.class).predict(channelContext, reqMessageVo, chatParamVo);
     } else {
-      // 5. 向前端通知一个空消息，标识搜索结束，开始推理
-      //{"type":"message","data":"", "messageId": "32fcbbf251337c"}
-      ChatDeltaRespVo<String> chatVo = ChatDeltaRespVo.message(answerMessageId, "");
-      byte[] jsonBytes = FastJson2Utils.toJSONBytes(chatVo);
-
-      if (channelContext != null) {
-        if (reqMessageVo.isSse()) {
-          Tio.bSend(channelContext, new SsePacket(jsonBytes));
-        } else {
-          Tio.bSend(channelContext, new WebSocketResponse(jsonBytes));
-        }
-      }
-
       chatVo = ChatDeltaRespVo.message(answerMessageId, "Sorry Developing");
       jsonBytes = FastJson2Utils.toJSONBytes(chatVo);
       if (channelContext != null) {
