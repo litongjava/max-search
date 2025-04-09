@@ -16,7 +16,7 @@ import com.litongjava.maxkb.vo.MaxKbRetrieveResult;
 import com.litongjava.maxkb.vo.ParagraphSearchResultVo;
 import com.litongjava.model.web.WebPageContent;
 
-public class MaxRetrieveService {
+public class MaxWebsiteRetrieveService {
 
   public List<WebPageContent> search(String question) {
     Long[] datasetIdArray = { 1L };
@@ -93,5 +93,4 @@ public class MaxRetrieveService {
     }
     return contentMap;
   }
-
 }

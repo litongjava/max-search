@@ -30,10 +30,10 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 
 @Slf4j
-public class MaxRagService {
+public class MaxWebSiteAugmentedService {
   public PredictService predictService = Aop.get(PredictService.class);
   private AiRankerService aiRankerService = Aop.get(AiRankerService.class);
-  private MaxRetrieveService maxRetrieveService = Aop.get(MaxRetrieveService.class);
+  private MaxWebsiteRetrieveService maxRetrieveService = Aop.get(MaxWebsiteRetrieveService.class);
   private VectorRankerService vectorRankerService = Aop.get(VectorRankerService.class);
   public boolean spped = true;
 

@@ -48,6 +48,7 @@ public class SearchGeminiSseCallback implements Callback {
     Long sessionId = reqVo.getMessage().getChatId();
     this.sessionId = sessionId;
     this.answerMessageId = chatParamVo.getAnswerMessageId();
+    this.start = start;
   }
 
   @Override
@@ -110,7 +111,7 @@ public class SearchGeminiSseCallback implements Callback {
 
       // 关闭连接
       long endTime = System.currentTimeMillis();
-      log.info("finish llm in {} (ms),tokens:{}", (endTime - start),JsonUtils.toSkipNullJson(usageMetadata));
+      log.info("finish llm in {} (ms),tokens:{}", (endTime - start), JsonUtils.toSkipNullJson(usageMetadata));
 
       //log.info("completionContent:{}", completionContent);
       if (completionContent != null && !completionContent.toString().isEmpty()) {
