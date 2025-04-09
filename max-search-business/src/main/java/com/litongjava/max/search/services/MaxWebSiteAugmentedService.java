@@ -47,6 +47,20 @@ public class MaxWebSiteAugmentedService {
     Long questionMessageId = reqMessageVo.getMessage().getMessageId();
     long answerMessageId = chatParamVo.getAnswerMessageId();
 
+    
+    ChatDeltaRespVo<String> greeting = ChatDeltaRespVo.reasoning(answerMessageId, "Retieve the school website data.");
+    byte[] greetingBytes = FastJson2Utils.toJSONBytes(greeting);
+    
+    if (channelContext != null) {
+      if (reqMessageVo.isSse()) {
+        Tio.bSend(channelContext, new SsePacket(greetingBytes));
+
+      } else {
+        Tio.bSend(channelContext, new WebSocketResponse(greetingBytes));
+      }
+    }
+    
+    
     String inputPrompt = null;
     if (copilotEnabled != null && copilotEnabled) {
       String quesiton = null;

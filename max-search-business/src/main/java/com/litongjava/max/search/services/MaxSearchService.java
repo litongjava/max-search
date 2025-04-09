@@ -55,6 +55,19 @@ public class MaxSearchService {
     Long questionMessageId = reqMessageVo.getMessage().getMessageId();
     long answerMessageId = chatParamVo.getAnswerMessageId();
 
+    ChatDeltaRespVo<String> greeting = ChatDeltaRespVo.reasoning(answerMessageId, "Search the internet.");
+    byte[] greetingBytes = FastJson2Utils.toJSONBytes(greeting);
+    
+    if (channelContext != null) {
+      if (reqMessageVo.isSse()) {
+        Tio.bSend(channelContext, new SsePacket(greetingBytes));
+
+      } else {
+        Tio.bSend(channelContext, new WebSocketResponse(greetingBytes));
+      }
+    }
+    
+    
     String inputPrompt = null;
     if (copilotEnabled != null && copilotEnabled) {
       String quesiton = null;

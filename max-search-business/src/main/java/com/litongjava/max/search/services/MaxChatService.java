@@ -62,13 +62,29 @@ public class MaxChatService {
    * 使用搜索模型处理消息
   */
   public void dispatch(ChannelContext channelContext, ChatWsReqMessageVo reqMessageVo) {
+    
+    long answerMessageId = SnowflakeIdUtils.id();
+    
     ChatReqMessage message = reqMessageVo.getMessage();
     Long userId = reqMessageVo.getUserId();
     Long sessionId = message.getChatId();
     Long messageQuestionId = message.getMessageId();
     String content = message.getContent();
 
+    ChatDeltaRespVo<String> greeting = ChatDeltaRespVo.reasoning(answerMessageId, "Let me think about the user's question.");
+    byte[] greetingBytes = FastJson2Utils.toJSONBytes(greeting);
+    
+    if (channelContext != null) {
+      if (reqMessageVo.isSse()) {
+        Tio.bSend(channelContext, new SsePacket(greetingBytes));
+
+      } else {
+        Tio.bSend(channelContext, new WebSocketResponse(greetingBytes));
+      }
+    }
+    
     ChatParamVo chatParamVo = new ChatParamVo();
+    chatParamVo.setAnswerMessageId(answerMessageId);
     // create chat or save message
     String focusMode = reqMessageVo.getFocusMode();
     if (!Db.exists(SearchTableNames.max_search_chat_session, "id", sessionId)) {
@@ -115,8 +131,7 @@ public class MaxChatService {
 
     Boolean copilotEnabled = reqMessageVo.getCopilotEnabled();
     Call call = null;
-    long answerMessageId = SnowflakeIdUtils.id();
-    chatParamVo.setAnswerMessageId(answerMessageId);
+    
 
     log.info("focusMode:{},{}", userId, focusMode);
     if (FocusMode.webSearch.equals(focusMode)) {
