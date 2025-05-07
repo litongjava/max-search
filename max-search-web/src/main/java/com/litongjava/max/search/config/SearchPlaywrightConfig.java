@@ -1,6 +1,5 @@
 package com.litongjava.max.search.config;
 
-import com.litongjava.annotation.AConfiguration;
 import com.litongjava.annotation.Initialization;
 import com.litongjava.hook.HookCan;
 import com.litongjava.maxkb.playwright.PlaywrightBrowser;

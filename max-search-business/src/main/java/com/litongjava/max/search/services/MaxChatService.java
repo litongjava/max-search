@@ -148,7 +148,7 @@ public class MaxChatService {
       call = maxSearchService.search(channelContext, reqMessageVo, chatParamVo);
 
     } else if (FocusMode.rag.equals(focusMode)) {
-      MaxWebSiteAugmentedService maxRetrieveService = Aop.get(MaxWebSiteAugmentedService.class);
+      MaxWebSiteRAGService maxRetrieveService = Aop.get(MaxWebSiteRAGService.class);
       call = maxRetrieveService.index(channelContext, reqMessageVo, chatParamVo);
 
     } else if (FocusMode.translator.equals(focusMode)) {

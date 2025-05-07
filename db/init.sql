@@ -180,3 +180,17 @@ CREATE TABLE "public"."max_kb_embedding_cache" (
 
 CREATE INDEX "idx_max_kb_embedding_cache_md5" ON "public"."max_kb_embedding_cache" USING btree ("md5");
 CREATE INDEX "idx_max_kb_embedding_cache_md5_m" ON "public"."max_kb_embedding_cache" USING btree ("md5", "m");
+
+
+drop table if exists gemini_api_key;
+CREATE TABLE gemini_api_key (
+  id BIGINT PRIMARY KEY,
+  name VARCHAR,
+  api_key varchar,
+  "creator" VARCHAR ( 64 ) DEFAULT '',
+  "create_time" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updater" VARCHAR ( 64 ) DEFAULT '',
+  "update_time" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "deleted" SMALLINT DEFAULT 0,
+  "tenant_id" BIGINT NOT NULL DEFAULT 0
+);

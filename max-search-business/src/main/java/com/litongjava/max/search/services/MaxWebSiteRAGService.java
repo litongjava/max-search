@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 
 @Slf4j
-public class MaxWebSiteAugmentedService {
+public class MaxWebSiteRAGService {
   public PredictService predictService = Aop.get(PredictService.class);
   private AiRankerService aiRankerService = Aop.get(AiRankerService.class);
   private MaxWebsiteRetrieveService maxRetrieveService = Aop.get(MaxWebsiteRetrieveService.class);

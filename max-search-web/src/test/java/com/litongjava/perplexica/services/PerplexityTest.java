@@ -9,8 +9,8 @@ import com.litongjava.openai.chat.OpenAiChatMessage;
 import com.litongjava.openai.chat.OpenAiChatRequestVo;
 import com.litongjava.openai.chat.OpenAiChatResponseVo;
 import com.litongjava.openai.client.OpenAiClient;
-import com.litongjava.openai.constants.PerplexityConstants;
-import com.litongjava.openai.constants.PerplexityModels;
+import com.litongjava.openai.consts.PerplexityConstants;
+import com.litongjava.openai.consts.PerplexityModels;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.json.Json;
 

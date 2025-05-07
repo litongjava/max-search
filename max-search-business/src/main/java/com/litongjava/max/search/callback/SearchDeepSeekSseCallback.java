@@ -6,9 +6,9 @@ import java.util.List;
 import com.jfinal.kit.Kv;
 import com.litongjava.max.search.can.ChatWsStreamCallCan;
 import com.litongjava.max.search.model.MaxSearchChatMessage;
+import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.max.search.vo.ChatParamVo;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
-import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.openai.chat.ChatResponseDelta;
 import com.litongjava.openai.chat.ChatResponseUsage;
 import com.litongjava.openai.chat.Choice;
@@ -18,7 +18,6 @@ import com.litongjava.tio.core.Tio;
 import com.litongjava.tio.http.common.sse.SsePacket;
 import com.litongjava.tio.http.server.util.SseEmitter;
 import com.litongjava.tio.utils.json.FastJson2Utils;
-import com.litongjava.tio.utils.json.Json;
 import com.litongjava.tio.utils.json.JsonUtils;
 import com.litongjava.tio.websocket.common.WebSocketResponse;
 
