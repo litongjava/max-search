@@ -91,8 +91,7 @@ public class MaxWebSiteRAGService {
 
       chatParamVo.setSources(webPageContents);
       // 将搜索结果转换为 JSON 格式保存到数据库中（便于记录历史消息）
-      PGobject pgObject = PgObjectUtils.json(webPageContents);
-      Db.updateBySql("update max_search_chat_message set sources=? where id=?", pgObject, questionMessageId);
+      //Db.updateBySql("update max_search_chat_message set sources=? where id=?", pgObject, questionMessageId);
 
       List<WebPageSource> sources = new ArrayList<>();
 

@@ -3,16 +3,22 @@ package com.litongjava.max.search.callback;
 import java.io.IOException;
 import java.util.List;
 
+import org.postgresql.util.PGobject;
+
 import com.jfinal.kit.Kv;
+import com.litongjava.db.activerecord.Db;
+import com.litongjava.db.activerecord.Row;
 import com.litongjava.gemini.GeminiCandidateVo;
 import com.litongjava.gemini.GeminiChatResponseVo;
 import com.litongjava.gemini.GeminiContentResponseVo;
 import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.gemini.GeminiUsageMetadataVo;
+import com.litongjava.kit.PgObjectUtils;
 import com.litongjava.max.search.can.ChatWsStreamCallCan;
 import com.litongjava.max.search.model.MaxSearchChatMessage;
 import com.litongjava.max.search.vo.ChatParamVo;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
+import com.litongjava.model.web.WebPageContent;
 import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.core.Tio;
@@ -95,12 +101,18 @@ public class SearchGeminiSseCallback implements Callback {
         }
       }
       StringBuffer completionContent = onSuccess(channelContext, answerMessageId, start, responseBody);
+      List<WebPageContent> sources = chatParamVo.getSources();
+      PGobject pgObject = PgObjectUtils.json(sources);
+
       // save user mesasge
-      new MaxSearchChatMessage().setId(answerMessageId).setChatId(sessionId)
-          //
-          .setRole("assistant").setContent(completionContent.toString())
-          //
-          .save();
+      try {
+        Row row = Row.by("id", answerMessageId).set("chat_id", sessionId).set("role", "assistant").set("content", completionContent.toString())
+            //
+            .set("sources", pgObject);
+        Db.save(MaxSearchChatMessage.tableName, row);
+      } catch (Exception e) {
+        log.error(e.getMessage(), e);
+      }
       Kv end = Kv.by("type", "messageEnd").set("messageId", answerMessageId);
       byte[] jsonBytes = FastJson2Utils.toJSONBytes(end);
       if (reqVo.isSse()) {
