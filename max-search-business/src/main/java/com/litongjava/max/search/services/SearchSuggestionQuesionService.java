@@ -16,7 +16,7 @@ import com.litongjava.openai.chat.ChatMessage;
 import com.litongjava.openai.chat.OpenAiChatMessage;
 import com.litongjava.openai.chat.OpenAiChatResponseVo;
 import com.litongjava.openai.client.OpenAiClient;
-import com.litongjava.openai.constants.OpenAiModels;
+import com.litongjava.openai.consts.OpenAiModels;
 import com.litongjava.template.PromptEngine;
 import com.litongjava.tio.utils.hutool.StrUtil;
 

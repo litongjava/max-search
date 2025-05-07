@@ -10,7 +10,7 @@ import com.litongjava.db.activerecord.Db;
 import com.litongjava.db.activerecord.Row;
 import com.litongjava.maxkb.service.kb.MaxKbEmbeddingService;
 import com.litongjava.model.web.WebPageContent;
-import com.litongjava.openai.constants.OpenAiModels;
+import com.litongjava.openai.consts.OpenAiModels;
 import com.litongjava.searxng.SearxngResult;
 import com.litongjava.searxng.SearxngSearchClient;
 import com.litongjava.searxng.SearxngSearchParam;
