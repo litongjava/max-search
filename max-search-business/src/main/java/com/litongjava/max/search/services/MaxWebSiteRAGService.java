@@ -5,16 +5,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.postgresql.util.PGobject;
-
 import com.jfinal.kit.Kv;
-import com.litongjava.db.activerecord.Db;
 import com.litongjava.jfinal.aop.Aop;
-import com.litongjava.kit.PgObjectUtils;
 import com.litongjava.max.search.consts.OptimizationMode;
+import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.max.search.vo.ChatParamVo;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
-import com.litongjava.max.search.vo.ChatDeltaRespVo;
 import com.litongjava.max.search.vo.WebPageSource;
 import com.litongjava.model.web.WebPageContent;
 import com.litongjava.template.PromptEngine;
@@ -106,7 +102,7 @@ public class MaxWebSiteRAGService {
       } else {
         host = "//" + host;
       }
-      sources.add(new WebPageSource("All Sources", host + "/sources/" + questionMessageId));
+      sources.add(new WebPageSource("All Sources", host + "/sources/" + answerMessageId));
       // 返回 sources 数据给客户端
       ChatDeltaRespVo<List<WebPageSource>> chatRespVo = new ChatDeltaRespVo<>();
       chatRespVo.setType("sources").setData(sources).setMessageId(answerMessageId);
