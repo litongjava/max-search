@@ -2,8 +2,8 @@ package com.litongjava.max.search.vo;
 
 import java.util.List;
 
+import com.litongjava.chat.ChatMessage;
 import com.litongjava.model.web.WebPageContent;
-import com.litongjava.openai.chat.ChatMessage;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

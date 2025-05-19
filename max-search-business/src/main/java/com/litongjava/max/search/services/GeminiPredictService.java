@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.litongjava.chat.ChatMessage;
 import com.litongjava.gemini.GeminiChatRequestVo;
 import com.litongjava.gemini.GeminiChatResponseVo;
 import com.litongjava.gemini.GeminiClient;
@@ -16,7 +17,6 @@ import com.litongjava.max.search.callback.SearchGeminiSseCallback;
 import com.litongjava.max.search.consts.FocusMode;
 import com.litongjava.max.search.vo.ChatParamVo;
 import com.litongjava.max.search.vo.ChatWsReqMessageVo;
-import com.litongjava.openai.chat.ChatMessage;
 import com.litongjava.tio.core.ChannelContext;
 import com.litongjava.tio.utils.json.JsonUtils;
 
@@ -73,8 +73,7 @@ public class GeminiPredictService {
 
     } else if (FocusMode.translator.equals(focusMode)) {
       GeminiPartVo geminiPartVo = new GeminiPartVo(inputPrompt);
-      GeminiSystemInstructionVo geminiSystemInstructionVo = new GeminiSystemInstructionVo();
-      geminiSystemInstructionVo.setParts(geminiPartVo);
+      GeminiSystemInstructionVo geminiSystemInstructionVo = new GeminiSystemInstructionVo(geminiPartVo);
       reqVo.setSystem_instruction(geminiSystemInstructionVo);
 
       contents.add(new GeminiContentVo("user", content));

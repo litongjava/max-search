@@ -3,6 +3,7 @@ package com.litongjava.max.search.services;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.litongjava.chat.ChatMessage;
 import com.litongjava.gemini.GeminiChatRequestVo;
 import com.litongjava.gemini.GeminiChatResponseVo;
 import com.litongjava.gemini.GeminiClient;
@@ -12,7 +13,6 @@ import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.gemini.GeminiResponseSchema;
 import com.litongjava.gemini.GeminiSystemInstructionVo;
 import com.litongjava.gemini.GoogleGeminiModels;
-import com.litongjava.openai.chat.ChatMessage;
 import com.litongjava.openai.chat.OpenAiChatMessage;
 import com.litongjava.openai.chat.OpenAiChatResponseVo;
 import com.litongjava.openai.client.OpenAiClient;
@@ -59,8 +59,7 @@ public class SearchSuggestionQuesionService {
     GeminiChatRequestVo reqVo = new GeminiChatRequestVo(contents);
 
     GeminiPartVo geminiPartVo = new GeminiPartVo(prompt);
-    GeminiSystemInstructionVo geminiSystemInstructionVo = new GeminiSystemInstructionVo();
-    geminiSystemInstructionVo.setParts(geminiPartVo);
+    GeminiSystemInstructionVo geminiSystemInstructionVo = new GeminiSystemInstructionVo(geminiPartVo);
 
     reqVo.setSystem_instruction(geminiSystemInstructionVo);
     // 

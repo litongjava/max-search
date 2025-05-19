@@ -5,10 +5,10 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.litongjava.chat.ChatMessage;
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.max.search.config.EnjoyEngineConfig;
 import com.litongjava.max.search.services.SearchSuggestionQuesionService;
-import com.litongjava.openai.chat.ChatMessage;
 import com.litongjava.tio.utils.environment.EnvUtils;
 
 public class SearchSuggestionQuesionServiceTest {

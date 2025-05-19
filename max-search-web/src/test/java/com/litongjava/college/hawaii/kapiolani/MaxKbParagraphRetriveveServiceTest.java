@@ -19,7 +19,7 @@ public class MaxKbParagraphRetriveveServiceTest {
     Integer top_n = 20;
     String question = "When is the first day of Fall 2025";
     //max_kb_sentence_id
-    MaxKbRetrieveResult search = Aop.get(MaxKbParagraphRetrieveService.class).search(datasetIdArray, similarity, top_n, question);
+    MaxKbRetrieveResult search = Aop.get(MaxKbParagraphRetrieveService.class).retrieve(datasetIdArray, similarity, top_n, question);
     System.out.println(JsonUtils.toJson(search.getParagraph_list()));
   }
 }

@@ -5,11 +5,11 @@ import java.util.List;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.litongjava.chat.ChatMessage;
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.max.search.services.SearchSuggestionQuesionService;
 import com.litongjava.max.search.vo.SearchChatMesageVo;
 import com.litongjava.max.search.vo.WebPageSource;
-import com.litongjava.openai.chat.ChatMessage;
 import com.litongjava.tio.boot.http.TioRequestContext;
 import com.litongjava.tio.http.common.HttpRequest;
 import com.litongjava.tio.http.common.HttpResponse;

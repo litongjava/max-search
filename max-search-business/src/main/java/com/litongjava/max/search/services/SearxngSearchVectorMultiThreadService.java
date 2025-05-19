@@ -8,7 +8,7 @@ import java.util.concurrent.Future;
 
 import com.litongjava.db.activerecord.Db;
 import com.litongjava.db.activerecord.Row;
-import com.litongjava.maxkb.service.kb.MaxKbEmbeddingService;
+import com.litongjava.maxkb.service.kb.KbEmbeddingService;
 import com.litongjava.model.web.WebPageContent;
 import com.litongjava.openai.consts.OpenAiModels;
 import com.litongjava.searxng.SearxngResult;
@@ -60,7 +60,7 @@ public class SearxngSearchVectorMultiThreadService {
 
     // 2. 获取问题文本对应的向量 id
     long questionVectorStartTime = System.currentTimeMillis();
-    MaxKbEmbeddingService maxKbEmbeddingService = new MaxKbEmbeddingService();
+    KbEmbeddingService maxKbEmbeddingService = new KbEmbeddingService();
     Long questionVectorId = maxKbEmbeddingService.getVectorId(question, MODEL_NAME);
     long questionVectorEndTime = System.currentTimeMillis();
     log.info("问题文本向量计算耗时：{} 毫秒", (questionVectorEndTime - questionVectorStartTime));

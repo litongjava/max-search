@@ -8,6 +8,7 @@ import java.util.concurrent.locks.Lock;
 
 import com.google.common.util.concurrent.Striped;
 import com.jfinal.kit.Kv;
+import com.litongjava.chat.ChatMessage;
 import com.litongjava.db.activerecord.Db;
 import com.litongjava.gemini.GoogleGeminiModels;
 import com.litongjava.google.search.GoogleCustomSearchResponse;
@@ -27,7 +28,6 @@ import com.litongjava.max.search.vo.ChatWsReqMessageVo;
 import com.litongjava.max.search.vo.CitationsVo;
 import com.litongjava.max.search.vo.WebPageSource;
 import com.litongjava.model.web.WebPageContent;
-import com.litongjava.openai.chat.ChatMessage;
 import com.litongjava.openai.chat.OpenAiChatMessage;
 import com.litongjava.openai.chat.OpenAiChatRequestVo;
 import com.litongjava.openai.client.OpenAiClient;

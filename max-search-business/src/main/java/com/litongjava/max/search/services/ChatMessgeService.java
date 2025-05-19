@@ -3,8 +3,8 @@ package com.litongjava.max.search.services;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.litongjava.chat.ChatMessage;
 import com.litongjava.max.search.model.MaxSearchChatMessage;
-import com.litongjava.openai.chat.ChatMessage;
 
 public class ChatMessgeService {
 

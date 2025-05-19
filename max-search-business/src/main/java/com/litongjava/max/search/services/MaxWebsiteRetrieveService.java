@@ -22,7 +22,7 @@ public class MaxWebsiteRetrieveService {
     Long[] datasetIdArray = { 1L };
     Float similarity = 0.2f;
     Integer top_n = 10;
-    MaxKbRetrieveResult step = Aop.get(MaxKbParagraphRetrieveService.class).search(datasetIdArray, similarity, top_n, question);
+    MaxKbRetrieveResult step = Aop.get(MaxKbParagraphRetrieveService.class).retrieve(datasetIdArray, similarity, top_n, question);
     List<ParagraphSearchResultVo> searchResults = step.getParagraph_list();
 
     // 使用 Map 以 paragraph_id 去重（key 为 paragraph_id，value 为对应的 WebPageContent）

@@ -7,7 +7,7 @@ import org.postgresql.util.PGobject;
 
 import com.litongjava.db.activerecord.Db;
 import com.litongjava.db.activerecord.Row;
-import com.litongjava.maxkb.service.kb.MaxKbEmbeddingService;
+import com.litongjava.maxkb.service.kb.KbEmbeddingService;
 import com.litongjava.model.web.WebPageContent;
 import com.litongjava.openai.consts.OpenAiModels;
 import com.litongjava.searxng.SearxngResult;
@@ -39,7 +39,7 @@ public class SearxngSearchVectorService {
     }
 
     // 2. 获取问题的向量
-    MaxKbEmbeddingService maxKbEmbeddingService = new MaxKbEmbeddingService();
+    KbEmbeddingService maxKbEmbeddingService = new KbEmbeddingService();
     PGobject questionVector = maxKbEmbeddingService.getVector(question, MODEL_NAME);
 
     // 3. 对每个搜索结果，计算问题和 description 的相似度
