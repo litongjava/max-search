@@ -87,9 +87,9 @@ public class GeminiPredictService {
     Call call = null;
     if (channelContext != null) {
       Callback callback = new SearchGeminiSseCallback(channelContext, reqMessageVo, chatParamVo, start);
-      call = GeminiClient.stream(api_key, GoogleGeminiModels.GEMINI_2_5_FLASH_PREVIEW_04_17, reqVo, callback);
+      call = GeminiClient.stream(api_key, "gemini-2.5-flash-preview-05-20", reqVo, callback);
     } else {
-      GeminiChatResponseVo vo = GeminiClient.generate(api_key, GoogleGeminiModels.GEMINI_2_5_FLASH_PREVIEW_04_17, reqVo);
+      GeminiChatResponseVo vo = GeminiClient.generate(api_key, "gemini-2.5-flash-preview-05-20", reqVo);
       log.info(vo.getCandidates().get(0).getContent().getParts().get(0).getText());
     }
 
