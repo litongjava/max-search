@@ -65,6 +65,37 @@ OPENAI_API_KEY=
 ```
 java -jar max-search-web/target/max-search-web-1.0.0.jar
 ```
+
+```
+mkdir -p ~/.config/systemd/user
+vi ~/.config/systemd/user/max-search.service
+```
+
+max-search.service
+```
+[Unit]
+Description=Java Web Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/data/apps/max-search
+ExecStart=/usr/java/jdk1.8.0_211/bin/java -jar max-search-web/target/max-search-web-1.0.0.jar --app.env=prod
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target
+```
+start
+```
+systemctl --user daemon-reload
+
+systemctl --user start max-search
+systemctl --user status max-search
+systemctl --user enable max-search
+```
 4. **克隆并启动前端**（如有需要）：
    ```bash
    git clone https://github.com/litongjava/Perplexica.git
