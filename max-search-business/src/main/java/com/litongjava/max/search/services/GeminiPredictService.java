@@ -11,7 +11,6 @@ import com.litongjava.gemini.GeminiClient;
 import com.litongjava.gemini.GeminiContentVo;
 import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.gemini.GeminiSystemInstructionVo;
-import com.litongjava.gemini.GoogleGeminiModels;
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.max.search.callback.SearchGeminiSseCallback;
 import com.litongjava.max.search.consts.FocusMode;
