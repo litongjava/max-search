@@ -82,7 +82,7 @@ public class DeepSeekPredictService {
     long start = SystemTimer.currTime;
     Callback callback = new SearchDeepSeekSseCallback(channelContext, reqMessageVo, chatParamVo, start);
     String apiKey = EnvUtils.getStr("VOLCENGINE_API_KEY");
-    Call call = OpenAiClient.chatCompletions(VolcEngineConst.BASE_URL, apiKey, chatRequestVo, callback);
+    Call call = OpenAiClient.chatCompletions(VolcEngineConst.API_PERFIX_URL, apiKey, chatRequestVo, callback);
     return call;
   }
 
