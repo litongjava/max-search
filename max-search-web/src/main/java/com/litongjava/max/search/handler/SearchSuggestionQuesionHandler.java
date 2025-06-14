@@ -62,7 +62,7 @@ public class SearchSuggestionQuesionHandler {
     String generated = Aop.get(SearchSuggestionQuesionService.class).generate(chatMessages);
     if (generated != null) {
       String charset = "utf-8";
-      response.setString(generated, charset, MimeType.TEXT_PLAIN_JSON.getType() + ";charset=" + charset);
+      response.setString(generated, charset, MimeType.APPLICATION_JSON.getType() + ";charset=" + charset);
     }
     return response;
   }
