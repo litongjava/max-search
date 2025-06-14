@@ -49,7 +49,7 @@ public class SearxngSearchVectorService {
         continue;
       }
       // 根据 description 计算 md5
-      String md5 = Md5Utils.getMD5(description);
+      String md5 = Md5Utils.md5Hex(description);
 
       // 尝试从 max_kb_web_page_description 表中查询 description 对应的向量
       String querySql = "SELECT descriptiont_vector FROM max_kb_web_page_description WHERE description_md5 = ?";

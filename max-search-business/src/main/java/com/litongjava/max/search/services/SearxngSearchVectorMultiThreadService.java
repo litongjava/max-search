@@ -53,7 +53,7 @@ public class SearxngSearchVectorMultiThreadService {
       WebPageContent wpc = new WebPageContent(title, url, description);
       webPageContents.add(wpc);
       if (description != null && !description.trim().isEmpty()) {
-        String md5 = Md5Utils.getMD5(description);
+        String md5 = Md5Utils.md5Hex(description);
         md5ToContentMap.put(md5, wpc);
       }
     }
