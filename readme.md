@@ -49,8 +49,22 @@ Max-Search 项目以 AI 搜索为核心，结合自然语言处理与搜索引�
    ```bash
    # 进入 max-search-web 目录后
    mvn clean package -DskipTests -Pproduction
-   java -jar target/max-search-1.0.0.jar
    ```
+vi .env
+```
+server.port=8003
+jdbc.MaximumPoolSize=20
+jdbc.url=jdbc:postgresql://127.0.0.1/max_kb
+jdbc.user=postgres
+jdbc.pswd=
+GEMINI_API_KEY=
+TAVILY_API_TOKEN=
+VOLCENGINE_API_KEY=
+OPENAI_API_KEY=
+```
+```
+java -jar max-search-web/target/max-search-web-1.0.0.jar
+```
 4. **克隆并启动前端**（如有需要）：
    ```bash
    git clone https://github.com/litongjava/Perplexica.git
