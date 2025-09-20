@@ -40,7 +40,6 @@ public class MaxWebSiteRAGService {
     String optimizationMode = reqMessageVo.getOptimizationMode();
     Boolean copilotEnabled = reqMessageVo.getCopilotEnabled();
     String content = reqMessageVo.getMessage().getContent();
-    Long questionMessageId = reqMessageVo.getMessage().getMessageId();
     long answerMessageId = chatParamVo.getAnswerMessageId();
 
     

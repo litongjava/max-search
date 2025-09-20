@@ -23,19 +23,24 @@ public class MaxSearchSummaryQuestionService {
     values.put("query", question);
     String prompt = template.renderToString(values);
     // 2. 调用大模型进行推理
-    //String content = useOpenAi(prompt);
+    // String content = useOpenAi(prompt);
     log.info("use gemini");
     String content = useGemini(prompt);
     // 3. 判断结果并返回
-    if ("not_needed".equals(content)) {
-      return question; // 或者根据实际需求，直接返回 "not_needed"
+    if (content != null) {
+      if (content.equals("not_needed") || content.startsWith("not_needed")) {
+        return question;
+      }
+    } else {
+      return question;
     }
+
     return content;
   }
 
   private String useGemini(String prompt) {
     String apiKey = EnvUtils.getStr("GEMINI_API_KEY");
-    return GeminiClient.chatWithModel(apiKey, GoogleModels.GEMINI_2_0_FLASH, "user", prompt);
+    return GeminiClient.chatWithModel(apiKey, GoogleModels.GEMINI_2_5_FLASH, "user", prompt);
   }
 
   private String useOpenAi(String prompt) {

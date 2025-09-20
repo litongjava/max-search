@@ -11,6 +11,7 @@ import com.litongjava.gemini.GeminiClient;
 import com.litongjava.gemini.GeminiContentVo;
 import com.litongjava.gemini.GeminiPartVo;
 import com.litongjava.gemini.GeminiSystemInstructionVo;
+import com.litongjava.gemini.GoogleModels;
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.max.search.callback.SearchGeminiSseCallback;
 import com.litongjava.max.search.consts.FocusMode;
@@ -65,8 +66,8 @@ public class GeminiPredictService {
         GeminiContentVo system = new GeminiContentVo("model", Collections.singletonList(part));
         contents.add(system);
       }
-      //Content with system role is not supported.
-      //Please use a valid role: user, model.
+      // Content with system role is not supported.
+      // Please use a valid role: user, model.
       // 3. 再将用户问题以 role = "user" 的形式添加
       contents.add(new GeminiContentVo("user", content + ". You must reply using the my this message language."));
 
@@ -84,11 +85,13 @@ public class GeminiPredictService {
     String api_key = apiKeyRotator.getNextKey();
     // 6. 流式/一次性获取结果
     Call call = null;
+    String modelName = GoogleModels.GEMINI_2_5_FLASH;
+    log.info("use model:{}", modelName);
     if (channelContext != null) {
       Callback callback = new SearchGeminiSseCallback(channelContext, reqMessageVo, chatParamVo, start);
-      call = GeminiClient.stream(api_key, "gemini-2.5-flash-preview-05-20", reqVo, callback);
+      call = GeminiClient.stream(api_key, modelName, reqVo, callback);
     } else {
-      GeminiChatResponseVo vo = GeminiClient.generate(api_key, "gemini-2.5-flash-preview-05-20", reqVo);
+      GeminiChatResponseVo vo = GeminiClient.generate(api_key, modelName, reqVo);
       log.info(vo.getCandidates().get(0).getContent().getParts().get(0).getText());
     }
 
