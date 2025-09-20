@@ -44,7 +44,7 @@ public class MaxWebSiteRAGService {
     long answerMessageId = chatParamVo.getAnswerMessageId();
 
     
-    ChatDeltaRespVo<String> greeting = ChatDeltaRespVo.reasoning(answerMessageId, " Retieve the school website data.");
+    ChatDeltaRespVo<String> greeting = ChatDeltaRespVo.reasoning(answerMessageId, " Retrieve the school website data.");
     byte[] greetingBytes = FastJson2Utils.toJSONBytes(greeting);
     
     if (channelContext != null) {
