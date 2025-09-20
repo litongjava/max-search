@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.litongjava.openai.chat.ChatMesageContent;
+import com.litongjava.openai.chat.ChatMessageContent;
 import com.litongjava.openai.chat.ChatRequestImage;
 import com.litongjava.openai.chat.ChatResponseMessage;
 import com.litongjava.openai.chat.OpenAiChatMessage;
@@ -14,7 +14,7 @@ import com.litongjava.openai.chat.OpenAiChatRequestVo;
 import com.litongjava.openai.chat.OpenAiChatResponseVo;
 import com.litongjava.openai.client.OpenAiClient;
 import com.litongjava.openai.consts.OpenAiModels;
-import com.litongjava.tio.utils.encoder.Base64Utils;
+import com.litongjava.tio.utils.base64.Base64Utils;
 import com.litongjava.tio.utils.environment.EnvUtils;
 import com.litongjava.tio.utils.http.ContentTypeUtils;
 import com.litongjava.tio.utils.hutool.FileUtil;
@@ -33,7 +33,7 @@ public class AskWithImageOpenai {
 
     String filePath = "images/200-dpi.png";
     URL url = ResourceUtil.getResource(filePath);
-    byte[] imageBytes = FileUtil.readUrlAsBytes(url);
+    byte[] imageBytes = FileUtil.readBytes(url);
     String suffix = FilenameUtils.getSuffix(filePath);
     String mimeType = ContentTypeUtils.getContentType(suffix);
 
@@ -43,9 +43,9 @@ public class AskWithImageOpenai {
     chatRequestImage.setDetail("auto");
     chatRequestImage.setUrl(imageBase64);
 
-    List<ChatMesageContent> multiContents = new ArrayList<>();
-    multiContents.add(new ChatMesageContent(prompt));
-    multiContents.add(new ChatMesageContent(chatRequestImage));
+    List<ChatMessageContent> multiContents = new ArrayList<>();
+    multiContents.add(new ChatMessageContent(prompt));
+    multiContents.add(new ChatMessageContent(chatRequestImage));
 
     OpenAiChatMessage userMessage = new OpenAiChatMessage();
     userMessage.role("user").multiContents(multiContents);
