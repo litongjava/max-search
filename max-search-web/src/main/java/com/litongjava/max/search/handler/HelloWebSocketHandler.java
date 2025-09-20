@@ -18,7 +18,8 @@ public class HelloWebSocketHandler implements IWebSocketHandler {
   /**
    * 握手成功后执行，绑定群组并通知其他用户
    */
-  public HttpResponse handshake(HttpRequest httpRequest, HttpResponse response, ChannelContext channelContext) throws Exception {
+  public HttpResponse handshake(HttpRequest httpRequest, HttpResponse response, ChannelContext channelContext)
+      throws Exception {
 
     log.info("request:{}", httpRequest);
     return response;
@@ -27,7 +28,8 @@ public class HelloWebSocketHandler implements IWebSocketHandler {
   /**
    * 处理文本消息，并进行消息广播
    */
-  public void onAfterHandshaked(HttpRequest httpRequest, HttpResponse httpResponse, ChannelContext channelContext) throws Exception {
+  public void onAfterHandshaked(HttpRequest httpRequest, HttpResponse httpResponse, ChannelContext channelContext)
+      throws Exception {
     log.info("request:{}", httpRequest);
 
   }
@@ -56,7 +58,7 @@ public class HelloWebSocketHandler implements IWebSocketHandler {
     String path = wsSessionContext.getHandshakeRequest().getRequestLine().path;
     log.info("路径：{}，收到消息：{}", path, text);
 
-    String message = "{user_id:'" + channelContext.userid + "',message:'" + text + "'}";
+    String message = "{user_id:'" + channelContext.userId + "',message:'" + text + "'}";
     WebSocketResponse wsResponse = WebSocketResponse.fromText(message, CHARSET);
     // 发送消息
     Tio.send(channelContext, wsResponse);

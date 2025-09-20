@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.litongjava.chat.ChatMessage;
+import com.litongjava.chat.UniChatMessage;
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.max.search.services.SearchSuggestionQuesionService;
 import com.litongjava.max.search.vo.SearchChatMesageVo;
@@ -34,7 +34,7 @@ public class SearchSuggestionQuesionHandler {
       return Resps.fail(response, "chatHistory can not be empty");
     }
     List<SearchChatMesageVo> searchChatMessages = chatHistory.toJavaList(SearchChatMesageVo.class);
-    List<ChatMessage> chatMessages = new ArrayList<>();
+    List<UniChatMessage> chatMessages = new ArrayList<>();
     for (SearchChatMesageVo searchChatMesageVo : searchChatMessages) {
       String role = searchChatMesageVo.getRole();
 
@@ -49,13 +49,13 @@ public class SearchSuggestionQuesionHandler {
         }
         String sourcesStr = stringBuffer.toString();
         if (StrUtil.isNotBlank(sourcesStr)) {
-          chatMessages.add(new ChatMessage(role, sourcesStr));
+          chatMessages.add(new UniChatMessage(role, sourcesStr));
         }
 
       }
       String content = searchChatMesageVo.getContent();
       if (StrUtil.isNotBlank(content)) {
-        chatMessages.add(new ChatMessage(role, content));
+        chatMessages.add(new UniChatMessage(role, content));
       }
     }
 

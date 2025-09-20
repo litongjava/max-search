@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.litongjava.chat.ChatMessage;
+import com.litongjava.chat.UniChatMessage;
 import com.litongjava.jfinal.aop.Aop;
 import com.litongjava.max.search.config.EnjoyEngineConfig;
 import com.litongjava.max.search.services.SearchSuggestionQuesionService;
@@ -21,8 +21,8 @@ public class SearchSuggestionQuesionServiceTest {
     new EnjoyEngineConfig().config();
 
     // 构造一段对话历史
-    List<ChatMessage> histories = new ArrayList<>();
-    histories.add(ChatMessage.buildUser("How was the professor Tong Li"));
+    List<UniChatMessage> histories = new ArrayList<>();
+    histories.add(UniChatMessage.buildUser("How was the professor Tong Li"));
 
     // 调用 SearchSuggestionQuesionService 进行建议问生成
     String generate = Aop.get(SearchSuggestionQuesionService.class).generate(histories);

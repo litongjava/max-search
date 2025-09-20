@@ -109,7 +109,7 @@ public class OpenAiV1ProxyHandler {
     } else {
       Response response = OpenAiClient.chatCompletions(headers, openAiRequestVo.toString());
       OkHttpResponseUtils.toTioHttpResponse(response, httpResponse);
-      httpResponse.setHasGzipped(true);
+      httpResponse.setSkipGzipped(true);
       httpResponse.removeHeaders("Transfer-Encoding");
       httpResponse.removeHeaders("Server");
       httpResponse.removeHeaders("Date");
@@ -150,7 +150,7 @@ public class OpenAiV1ProxyHandler {
         if (!response.isSuccessful()) {
           httpResponse.setSend(true);
           OkHttpResponseUtils.toTioHttpResponse(response, httpResponse);
-          httpResponse.setHasGzipped(true);
+          httpResponse.setSkipGzipped(true);
           httpResponse.removeHeaders("Content-Length");
           // 响应
           Tio.bSend(channelContext, httpResponse);

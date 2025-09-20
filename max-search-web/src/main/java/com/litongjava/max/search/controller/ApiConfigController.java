@@ -15,7 +15,7 @@ public class ApiConfigController {
   @Get
   public HttpResponse index() {
     URL url = ResourceUtil.getResource("json/predict_config.json");
-    StringBuilder str = FileUtil.readURLAsString(url);
-    return TioRequestContext.getResponse().setJson(str.toString());
+    String str = FileUtil.readString(url);
+    return TioRequestContext.getResponse().setJson(str);
   }
 }

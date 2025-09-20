@@ -15,7 +15,7 @@ public class ApiModelController {
   @Get
   public HttpResponse index() {
     URL url = ResourceUtil.getResource("json/openai_model.json");
-    StringBuilder str = FileUtil.readURLAsString(url);
+    String str = FileUtil.readString(url);
     return TioRequestContext.getResponse().setJson(str.toString());
   }
 }

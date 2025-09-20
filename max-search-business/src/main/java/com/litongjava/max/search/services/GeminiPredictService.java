@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.litongjava.chat.ChatMessage;
+import com.litongjava.chat.UniChatMessage;
 import com.litongjava.gemini.GeminiChatRequestVo;
 import com.litongjava.gemini.GeminiChatResponseVo;
 import com.litongjava.gemini.GeminiClient;
@@ -38,12 +38,12 @@ public class GeminiPredictService {
 
     List<GeminiContentVo> contents = new ArrayList<>();
     // 1. 如果有对话历史，则构建 role = user / model 的上下文内容
-    List<ChatMessage> history = chatParamVo.getHistory();
+    List<UniChatMessage> history = chatParamVo.getHistory();
     if (history != null) {
 
       if (history != null && history.size() > 0) {
         for (int i = 0; i < history.size(); i++) {
-          ChatMessage chatMessage = history.get(i);
+          UniChatMessage chatMessage = history.get(i);
           String role = chatMessage.getRole();
           if ("human".equals(role)) {
             role = "user";

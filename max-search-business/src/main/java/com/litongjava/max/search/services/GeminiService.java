@@ -1,7 +1,7 @@
 package com.litongjava.max.search.services;
 
 import com.litongjava.gemini.GeminiClient;
-import com.litongjava.gemini.GoogleGeminiModels;
+import com.litongjava.gemini.GoogleModels;
 import com.litongjava.openai.chat.OpenAiChatRequestVo;
 import com.litongjava.openai.client.OpenAiClient;
 import com.litongjava.openai.consts.OpenAiConstants;
@@ -18,7 +18,7 @@ public class GeminiService {
     if (EnvUtils.isDev()) {
       log.info("api key:{}", apiKey);
     }
-    return GeminiClient.chatWithModel(apiKey, GoogleGeminiModels.GEMINI_2_0_FLASH_EXP, "user", prompt);
+    return GeminiClient.chatWithModel(apiKey, GoogleModels.GEMINI_2_0_FLASH_EXP, "user", prompt);
     //return OpenAiClient.chatWithModel(OpenAiConstants.GEMINI_OPENAI_API_BASE, apiKey, GoogleGeminiModels.GEMINI_2_0_FLASH_EXP, "user", prompt);
   }
 

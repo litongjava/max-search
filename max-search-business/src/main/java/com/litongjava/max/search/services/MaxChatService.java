@@ -8,9 +8,9 @@ import java.util.concurrent.locks.Lock;
 
 import com.google.common.util.concurrent.Striped;
 import com.jfinal.kit.Kv;
-import com.litongjava.chat.ChatMessage;
+import com.litongjava.chat.UniChatMessage;
 import com.litongjava.db.activerecord.Db;
-import com.litongjava.gemini.GoogleGeminiModels;
+import com.litongjava.gemini.GoogleModels;
 import com.litongjava.google.search.GoogleCustomSearchResponse;
 import com.litongjava.google.search.SearchResultItem;
 import com.litongjava.jfinal.aop.Aop;
@@ -112,7 +112,7 @@ public class MaxChatService {
     }
 
     // query history
-    List<ChatMessage> history = chatMessgeService.getHistoryById(sessionId);
+    List<UniChatMessage> history = chatMessgeService.getHistoryById(sessionId);
     chatParamVo.setHistory(history);
 
     if (content.length() > 30 || history.size() > 0) {
@@ -286,7 +286,7 @@ public class MaxChatService {
     messages.add(new OpenAiChatMessage("assistant", webSearchResponsePrompt));
     messages.add(new OpenAiChatMessage(content));
 
-    OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(GoogleGeminiModels.GEMINI_2_0_FLASH_EXP)
+    OpenAiChatRequestVo chatRequestVo = new OpenAiChatRequestVo().setModel(GoogleModels.GEMINI_2_0_FLASH_EXP)
         //
         .setMessages(messages).setMax_tokens(3000);
     chatRequestVo.setStream(true);

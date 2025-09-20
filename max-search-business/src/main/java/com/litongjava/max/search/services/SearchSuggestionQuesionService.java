@@ -3,16 +3,16 @@ package com.litongjava.max.search.services;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.litongjava.chat.ChatMessage;
+import com.litongjava.chat.UniChatMessage;
+import com.litongjava.chat.UniResponseSchema;
 import com.litongjava.gemini.GeminiChatRequestVo;
 import com.litongjava.gemini.GeminiChatResponseVo;
 import com.litongjava.gemini.GeminiClient;
 import com.litongjava.gemini.GeminiContentVo;
-import com.litongjava.gemini.GeminiGenerationConfigVo;
+import com.litongjava.gemini.GeminiGenerationConfig;
 import com.litongjava.gemini.GeminiPartVo;
-import com.litongjava.gemini.GeminiResponseSchema;
 import com.litongjava.gemini.GeminiSystemInstructionVo;
-import com.litongjava.gemini.GoogleGeminiModels;
+import com.litongjava.gemini.GoogleModels;
 import com.litongjava.openai.chat.OpenAiChatMessage;
 import com.litongjava.openai.chat.OpenAiChatResponseVo;
 import com.litongjava.openai.client.OpenAiClient;
@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SearchSuggestionQuesionService {
   private String prompt = PromptEngine.renderToString("suggestion_generator_prompt.txt");
 
-  public String generate(List<ChatMessage> histories) {
+  public String generate(List<UniChatMessage> histories) {
 
     if (histories == null || histories.size() < 1) {
       return null;
@@ -41,12 +41,12 @@ public class SearchSuggestionQuesionService {
 
   }
 
-  public String useGemini(String prompt, List<ChatMessage> histories) {
+  public String useGemini(String prompt, List<UniChatMessage> histories) {
 
     List<GeminiContentVo> contents = new ArrayList<>();
     // 1. 如果有对话历史，则构建 role = user / model 的上下文内容
     for (int i = 0; i < histories.size(); i++) {
-      ChatMessage chatMessage = histories.get(i);
+      UniChatMessage chatMessage = histories.get(i);
       String role = chatMessage.getRole();
       if ("human".equals(role)) {
         role = "user";
@@ -64,19 +64,19 @@ public class SearchSuggestionQuesionService {
     reqVo.setSystem_instruction(geminiSystemInstructionVo);
     // 
     String key = "suggestions";
-    GeminiResponseSchema schema = GeminiResponseSchema.array(key);
+    UniResponseSchema schema = UniResponseSchema.array(key);
 
-    GeminiGenerationConfigVo geminiGenerationConfigVo = new GeminiGenerationConfigVo();
+    GeminiGenerationConfig geminiGenerationConfigVo = new GeminiGenerationConfig();
     geminiGenerationConfigVo.buildJsonValue().setResponseSchema(schema);
 
     reqVo.setGenerationConfig(geminiGenerationConfigVo);
-    GeminiChatResponseVo generate = GeminiClient.generate(GoogleGeminiModels.GEMINI_2_0_FLASH_EXP, reqVo);
+    GeminiChatResponseVo generate = GeminiClient.generate(GoogleModels.GEMINI_2_0_FLASH_EXP, reqVo);
     return generate.getCandidates().get(0).getContent().getParts().get(0).getText();
   }
 
-  public String useOpenAi(String prompt, List<ChatMessage> histories) {
+  public String useOpenAi(String prompt, List<UniChatMessage> histories) {
     List<OpenAiChatMessage> messages = new ArrayList<>();
-    for (ChatMessage item : histories) {
+    for (UniChatMessage item : histories) {
       messages.add(new OpenAiChatMessage(item.getRole(), item.getContent()));
     }
     OpenAiChatResponseVo chatResponseVo = OpenAiClient.chatCompletions(OpenAiModels.GPT_4O_MINI, prompt, messages);

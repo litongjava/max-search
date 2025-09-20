@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.jfinal.template.Template;
-import com.litongjava.chat.ChatMessage;
+import com.litongjava.chat.UniChatMessage;
 import com.litongjava.gemini.GeminiClient;
-import com.litongjava.gemini.GoogleGeminiModels;
+import com.litongjava.gemini.GoogleModels;
 import com.litongjava.openai.chat.OpenAiChatResponseVo;
 import com.litongjava.openai.client.OpenAiClient;
 import com.litongjava.template.PromptEngine;
@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RewriteQuestionService {
 
-  public String rewrite(String question, List<ChatMessage> messages) {
+  public String rewrite(String question, List<UniChatMessage> messages) {
 
     // 1.渲染模版
     Template template = PromptEngine.getTemplate("rewrite_question_prompt.txt");
@@ -40,7 +40,7 @@ public class RewriteQuestionService {
   private String gemini(String prompt) {
     String content;
     String apiKey = EnvUtils.getStr("GEMINI_API_KEY");
-    content = GeminiClient.chatWithModel(apiKey, GoogleGeminiModels.GEMINI_2_0_FLASH_EXP, "user", prompt);
+    content = GeminiClient.chatWithModel(apiKey, GoogleModels.GEMINI_2_0_FLASH_EXP, "user", prompt);
     return content;
   }
 

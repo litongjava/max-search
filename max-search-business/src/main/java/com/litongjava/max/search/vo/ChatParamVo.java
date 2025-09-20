@@ -2,7 +2,7 @@ package com.litongjava.max.search.vo;
 
 import java.util.List;
 
-import com.litongjava.chat.ChatMessage;
+import com.litongjava.chat.UniChatMessage;
 import com.litongjava.model.web.WebPageContent;
 
 import lombok.AllArgsConstructor;
@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class ChatParamVo {
   private String rewrited;
   private String systemPrompt;
-  private List<ChatMessage> history;
+  private List<UniChatMessage> history;
   private String from;
   private long answerMessageId;
   private List<WebPageContent> sources;

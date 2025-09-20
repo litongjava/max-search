@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.jfinal.template.Template;
 import com.litongjava.gemini.GeminiClient;
-import com.litongjava.gemini.GoogleGeminiModels;
+import com.litongjava.gemini.GoogleModels;
 import com.litongjava.openai.chat.OpenAiChatResponseVo;
 import com.litongjava.openai.client.OpenAiClient;
 import com.litongjava.template.PromptEngine;
@@ -35,7 +35,7 @@ public class MaxSearchSummaryQuestionService {
 
   private String useGemini(String prompt) {
     String apiKey = EnvUtils.getStr("GEMINI_API_KEY");
-    return GeminiClient.chatWithModel(apiKey, GoogleGeminiModels.GEMINI_2_0_FLASH, "user", prompt);
+    return GeminiClient.chatWithModel(apiKey, GoogleModels.GEMINI_2_0_FLASH, "user", prompt);
   }
 
   private String useOpenAi(String prompt) {
